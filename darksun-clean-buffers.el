@@ -44,20 +44,23 @@
 
 (defun judge-useless-buffer-by-name (buffer)
   ""
-  (when (bufferp buffer)
-	(setq buffer (buffer-name buffer)))
   (some (lambda (reg) (string-match reg buffer)) useless-buffer-names))
 
+(defcustom useful-buffer-names 
+	'("*Tree*")
+	"无用buffer的名称列表"
+	:group 'clean-buffers
+	:type '(repeat regexp))
+
 (defun useless-buffer-p (buffer)
-  "使用judge-useless-buffer-functions中的函数判断buffer是否为无用的buffer"
-  (let (useless-flag )
-	(setq useless-flag 
-		  (catch 'break
-			(dolist (judge-useless-buffer-function judge-useless-buffer-functions)
-			  (when (funcall judge-useless-buffer-function buffer)
-				(throw 'break t)))
-			nil))
-	useless-flag))
+  "使用judge-useless-buffer-functions中的函数判断buffer是否为无用的buffer
+
+匹配useful-buffer-name的buffer不会被清理"
+  (when (bufferp buffer)
+	(setq buffer (buffer-name buffer)))
+  (and (not (some (lambda (reg) (string-match reg buffer)) useful-buffer-names))
+	   (some (lambda (fn) (funcall fn buffer)) judge-useless-buffer-functions)))
+
 (defun kill-useless-buffer(buffer)
   "若buffer为无用的buffer,则kill之"
   (when (useless-buffer-p buffer)
