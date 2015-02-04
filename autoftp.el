@@ -1,43 +1,42 @@
-;;×Ô¶¯ÉÏ´«ÎÄ¼ş
-;ÉèÖÃftp³ÌĞòµÄµØÖ·
+;;è‡ªåŠ¨ä¸Šä¼ æ–‡ä»¶
+;è®¾ç½®ftpç¨‹åºçš„åœ°å€
 ;(setq ange-ftp-ftp-programe-name "d:/bin/ftp_xp.exe")
-(defvar *is-auto-ftp* nil
-  "ÊÇ·ñ×Ô¶¯ftpµÄ±êÖ¾")
 (defun turn-on-auto-ftp()
-  "ÉèÖÃ´ò¿ª×Ô¶¯ftp¹¦ÄÜ"
+  "è®¾ç½®æ‰“å¼€è‡ªåŠ¨ftpåŠŸèƒ½"
   (interactive)
-  (setf *is-auto-ftp* t))
+  (add-hook 'after-save-hook 'UpMeToFtp))
 (defun turn-off-auto-ftp()
-  "ÉèÖÃ¹ÜÀí×Ô¶¯ftp¹¦ÄÜ"
+  "è®¾ç½®ç®¡ç†è‡ªåŠ¨ftpåŠŸèƒ½"
   (interactive)
-  (setf *is-auto-ftp* nil))
+  (remove-hook 'after-save-hook 'UpMeToFtp))
 
-(defvar *remote-root* "/cnaps2@10.8.6.10:"
-  "Ô¶³ÌftpµÄ¸ùÄ¿Â¼µØÖ·,¸ñÊ½Îª/username@ip:/path/to/root/")
-(defun set-remote-root(remote-root)
-  "ÉèÖÃÔ¶³ÌftpµÄ¸ùÄ¿Â¼µØÖ·"
-  (interactive "sÇëÊäÈëÔ¶³ÌftpµÄµØÖ·,¸ñÊ½Îª/username@ip:/path/to/root/")
-  (setf *remote-root* (expand-file-name (file-name-as-directory remote-root))))
+(defgroup autoftp-group nil "è‡ªåŠ¨ftpåˆ°remote machine")
+(defcustom local-remote-root-pairs '(("e:/git-svn/server/" . "/cnaps2@10.8.6.10:")
+									 ("d:/workcvs/ibps/ibps" . "/ibpsusr@10.8.6.10:"))
+  "æœ¬åœ°é¡¹ç›®rootä¸å¯¹åº”çš„remoteåœ°å€çš„alist
 
-(defvar *local-root* (file-name-as-directory (expand-file-name "."))
-  "*±êÊ¶±¾µØÎÄ¼şµÄ¿ªÊ¼¸ùÄ¿Â¼,ÒÔÕâĞ©Â·¾¶¿ªÍ·µÄÎÄ¼ş²Å»áftpµ½Ô¶³Ì")	
-(defun set-local-root(local-root)
-  "ÉèÖÃ±¾µØÎÄ¼şµÄ¿ªÊ¼¸ùÄ¿Â¼"
-  (interactive "sÇëÊäÈë±¾µØÎÄ¼şµÄ¿ªÊ¼¸ùÄ¿Â¼")
-  (setf *local-root* (file-name-as-directory local-root)))
+å…¶ä¸­remote-rootçš„æ ¼å¼ä¸º/username@ip:/path/to/root/
+ä»¥local-rootå¼€å¤´çš„æ–‡ä»¶ä¼šè¢«ftpåˆ°å¯¹åº”çš„remote-rootä¸Šå»")
+
 
 (defun local-path-to-remote-path(local-path)
-  "×ª»»±¾µØÂ·¾¶ÎªftpµÄÔ¶³ÌÂ·¾¶"
-  (replace-regexp-in-string (concat "^" (regexp-quote *local-root*)) *remote-root* local-path)) 
+  "è½¬æ¢æœ¬åœ°è·¯å¾„ä¸ºftpçš„è¿œç¨‹è·¯å¾„"
+  (some (lambda (local-remote-root-pair)
+		  (let ((local-root (car local-remote-root-pair))
+				(remote-root (cdr local-remote-root-pair)))
+			(if (string-prefix-p local-root local-path)
+				(replace-regexp-in-string (concat "^" (regexp-quote local-root)) remote-root local-path)
+			  nil)))
+		local-remote-root-pairs)) 
 
-;; (local-path-to-remote-path "d:/workcvs/cnaps2/server/trunk/makeall")
+;; (local-path-to-remote-path "e:/git-svn/server/trunk/makeall")
 (global-set-key [f11] 'UpMeToFtp)
 (defun UpMeToFtp()
   "Upload me to the ftp "
   (interactive)
-  (if (and *is-auto-ftp* (string-prefix-p *local-root* buffer-file-name))
-	  (copy-file buffer-file-name (local-path-to-remote-path buffer-file-name) t)))  
-
-(add-hook 'after-save-hook 'UpMeToFtp)
+  (let (remote-path)
+	(setq remote-path (local-path-to-remote-path buffer-file-name))
+  (if remote-path
+	  (copy-file buffer-file-name  remote-path t))))  
 
 (provide 'autoftp)
