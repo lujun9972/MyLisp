@@ -2,10 +2,9 @@
   "判断buffer是否有在某个window中显示"
   (get-buffer-window buffer t))
 
-(defun kill-buffer-if-not-active(buffer)
-  "若buffer处于非active状态,则kill之"
-  (unless (buffer-active-p buffer)
-	(kill-buffer buffer)))
+(defun buffer-process-holding-p (buffer)
+  "判断buffer是否被某个process所持有"
+  (get-buffer-process buffer))
 
 (defgroup clean-buffers nil
   "定时清理无用的buffer")
@@ -14,6 +13,12 @@
   "自动清理时是否清理active状态的buffer"
   :type '(boolean)
   :group 'clean-buffers)
+
+(defcustom kill-proces-holding-buffer nil
+  "自动清理时是否清理被process持有的buffer"
+  :type '(boolean)
+  :group 'clean-buffers)
+
 (defcustom judge-useless-buffer-functions '(judge-useless-buffer-by-time judge-useless-buffer-by-name)
   "用于判断buffer是否为无用buffer的函数列表
 
@@ -37,7 +42,7 @@
 	(> (- now buffer-last-display-time) useless-buffer-time-out)))
 
 (defcustom useless-buffer-names 
-	'("*Buffer List*" "*Backtrace*" "*Apropos*" "*Completions*" "*Help*" "\\.~master~" "\\*vc-dir\\*")
+	'("*Buffer List*" "*Backtrace*" "*Apropos*" "*Completions*" "*Help*" "\\.~master~" "\\*vc-dir\\*" "\\*tramp\/.+\\*"  "\\*vc-git.+\\*")
 	"无用buffer的名称列表"
 	:group 'clean-buffers
 	:type '(repeat regexp))
@@ -61,17 +66,19 @@
   (and (not (some (lambda (reg) (string-match reg buffer)) useful-buffer-names))
 	   (some (lambda (fn) (funcall fn buffer)) judge-useless-buffer-functions)))
 
-(defun kill-useless-buffer(buffer)
+(defun kill-useless-buffer(buffer &optional kill-active kill-process-holding)
   "若buffer为无用的buffer,则kill之"
-  (when (useless-buffer-p buffer)
-	(if kill-active-buffer
-		(kill-buffer buffer)
-	  (kill-buffer-if-not-active buffer))))
+  (unless (or (not (useless-buffer-p buffer))
+			  (and (not kill-active) (buffer-active-p buffer))
+			  (and (not kill-process-holding) (buffer-process-holding-p buffer)))
+	(kill-buffer buffer)))
 
 (defun kill-useless-buffers()
   "清理所有的无用buffer"
   (interactive)
   (dolist (buffer (buffer-list))
-	(kill-useless-buffer buffer)))
+	(kill-useless-buffer buffer kill-active-buffer kill-proces-holding-buffer)))
 
 (provide 'darksun-clean-buffers)
+
+
