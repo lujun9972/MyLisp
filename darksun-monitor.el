@@ -27,17 +27,17 @@ handler-rules的格式为'((match1 . action1) (match2 . action2)...)
 当process的output匹配matchN时,执行actionN命令"
   (lexical-let ((rules handler-rules))
 	(lambda (process output)
-	  (dolist (rule rules)
-		(let ((match (car rule))
-			  (action (cdr rule)))
+	  
+	  (let* ((rule (assoc-if (lambda (match)
+							   (string-match-p match output))
+							 rules))
+			 (action (cdr rule)))
 		  (internal-default-process-filter process output)
-		  (when (string-match-p match output)
 			;; 若dbus可用,则使用notification通知
 			(when (dbus-avaliable-p)
 			  (notifications-notify :title (process-name process)
 									:body output))
 			;; 执行action动作
-			()
 			(execute-monitor-command action process)))))))
 
 (defun start-monitor-process (command handler-rules &optional time-out process)
