@@ -29,7 +29,8 @@ handler-rules的格式为'((match1 . action1) (match2 . action2)...)
 	(lambda (process output)
 	  
 	  (let* ((rule (assoc-if (lambda (match)
-							   (string-match-p match output))
+							   (or (eq match t)
+								   (string-match-p match output)))
 							 rules))
 			 (action (cdr rule)))
 		  (internal-default-process-filter process output)
@@ -38,7 +39,10 @@ handler-rules的格式为'((match1 . action1) (match2 . action2)...)
 			  (notifications-notify :title (process-name process)
 									:body output))
 			;; 执行action动作
-			(execute-monitor-command action process)))))))
+			(cond ((string-p action)
+				   (execute-monitor-command action process))
+				  ((functionp action)
+				   (execute-monitor-command (funcall action  output) process)))))))
 
 (defun start-monitor-process (command handler-rules &optional time-out process)
   "向process发起监控命令,并根据handler-rules来根据输出执行相应的action"
