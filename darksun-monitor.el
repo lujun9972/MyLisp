@@ -17,7 +17,7 @@
 		(process (or process (get-buffer-process (current-buffer)))))
 	(process-send-string process command)))
 
-(defun make-output-handler (handler-rules)
+(defun make-output-handler (reaction-rules)
   "创建filter-function
 
 该filter-function根据handler-rules的规则来匹配后续动作.
@@ -25,7 +25,7 @@
 handler-rules的格式为'((match1 . action1) (match2 . action2)...)
 
 当process的output匹配matchN时,执行actionN命令"
-  (lexical-let ((rules handler-rules))
+  (lexical-let ((rules reaction-rules))
 	(lambda (process output)
 	  
 	  (let* ((rule (assoc-if (lambda (match)
@@ -39,22 +39,20 @@ handler-rules的格式为'((match1 . action1) (match2 . action2)...)
 			  (notifications-notify :title (process-name process)
 									:body output))
 			;; 执行action动作
-			(cond ((string-p action)
+			(cond ((stringp action)
 				   (execute-monitor-command action process))
 				  ((functionp action)
 				   (execute-monitor-command (funcall action  output) process)))))))
 
-(defun start-monitor-process (command handler-rules &optional time-out process)
+(defun start-monitor-process (command reaction-rules &optional time-out process)
   "向process发起监控命令,并根据handler-rules来根据输出执行相应的action"
-  (let* ((time-out (or time-out 10))
-		 (process (or process (get-buffer-process (current-buffer))))
-		 (old-filter-function (process-filter process)))
-	(set-process-filter process (make-output-handler handler-rules))
+  (let* ((time-out (or time-out 2))
+		 (process (or process (get-buffer-process (current-buffer)))))
+	(set-process-filter process (make-output-handler reaction-rules))
 	(execute-monitor-command command process)
-	(accept-process-output process time-out nil t)
-	(set-process-filter process old-filter-function)))
+	(accept-process-output process time-out nil t)))
 
-(start-monitor-process "df|grep cnaps2" '(("100%" . "ls") ("7.%" . "ls -l")) 10 a)
+(start-monitor-process "df|grep cnaps2" '(("8.%" . "echo do clean job") ("9.%" . "echo warnning clean job")) 10 a)
 
 
 (setq a (make-connect-by-plink "10.8.6.10" "cnaps2" "123456"))
