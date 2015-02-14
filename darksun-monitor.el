@@ -72,8 +72,8 @@ output是否读完,根据process的output-end-line来标识"
   (let* ((last-output (process-get process 'output))
 		 (output (concat last-output output)))
 	(process-put process 'output output)
-	(when (string-match-p (regexp-quote (process-get process 'output-end-line))
-						  output)		;output已经完全读出
+	(when (string-match-p  (process-get process 'output-end-line)
+						   output)		;output已经完全读出
 	  (modify-process-output-finished process t)
 	  (internal-default-process-filter process output))))
 
@@ -111,14 +111,13 @@ handler-rules的格式为由(match . action)组成的alist
 	(while (accept-process-output process wait-time nil t) ;若一段时间内无值,则认为登录进去了,推出循环等待
 	  (sit-for 1))
 	(set-process-filter process #'monitor-filter-function)
-	;; (execute-monitor-command "" process)
 	(cl-labels ((get-last-line (process)
 							   "获取process buffer中最后一行的内容"
 							   (with-current-buffer (process-buffer process) 
 								 (goto-char (point-max))
 								 (search-backward-regexp "[\r\n]")
 								 (buffer-substring-no-properties (1+ (point)) (point-max)))))
-	  (process-put process 'output-end-line (get-last-line process)))
+	  (process-put process 'output-end-line (regexp-quote (get-last-line process))))
 	process))
 
 (defun do-monitor (process  monitor  )
