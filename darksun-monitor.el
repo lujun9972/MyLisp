@@ -51,6 +51,9 @@
 	(process-send-string process command)))
 
 (defun monitor-filter-function (process output)
+  (reaction process output))
+
+(defun reaction (process output)
   "该filter-function根据handler-rules的规则来匹配后续动作.
 
 handler-rules的格式为由(match . action)组成的alist
@@ -82,6 +85,15 @@ handler-rules的格式为由(match . action)组成的alist
   (let (process)
 	(setq process (make-or-raise-connect remote usr pwd))
 	(set-process-filter process #'monitor-filter-function)
+	(accept-process-output process nil nil t)
+	(process-put process 'output "")
+	(cl-labels ((get-last-line (process)
+							   "获取process buffer中最后一行的内容"
+							   (with-current-buffer (process-buffer process) 
+								 (goto-char (point-max))
+								 (search-backward-regexp "[\r\n]")
+								 (buffer-substring-no-properties (1+ (point)) (point-max)))))
+	  (process-put process 'output-end-line (get-last-line process)))
 	process))
 
 (defun do-monitor (process time-out monitor  )
@@ -113,6 +125,7 @@ handler-rules的格式为由(match . action)组成的alist
 			 (apply #'do-monitors process *time-out* (process-get process 'monitors)))
 		   (remove-if-not #'monitor-process-p (process-list))))
 
+(setq a (start-monitor-process "localhost" "lujun9972" "7758521"))
 
 (setq a (start-monitor-process "10.8.6.10" "cnaps2" "123456"))
 
