@@ -18,16 +18,31 @@
 
 (defun make-connect-by-plink (remote usr pwd)
   "通过plink建立与remote的远程连接"
-  (let* ((connect-name (format "plink-%s@%s" usr remote))
-		(connect-buffer connect-name)
-		(monitor-process))
+  (let* ((connect-name (format "%s@%s" usr remote))
+		(connect-buffer connect-name))
 	(start-process connect-name connect-buffer "plink" "-l" usr "-pw" pwd remote)))
 
-(defun make-or-raise-connect-by-plink (remote usr pwd)
+(defun make-connect-by-ssh (remote usr pwd)
+  "通过ssh建立与remote的远程连接"
+  (let* ((connect-name (format "%s@%s" usr remote))
+		(connect-buffer connect-name)
+		(process (start-process connect-name connect-buffer "ssh" "-l" usr remote)))
+	(accept-process-output process nil nil t)
+	(process-send-string process (concat pwd "\n") )
+	process))
+
+(defun make-connect (remote usr pwd)
+  (cond ((executable-find "plink")
+		 (make-connect-by-plink remote usr pwd))
+		((executable-find "ssh")
+		 (make-connect-by-ssh remote usr pwd))
+		(t (error "没找到建立远程连接的程序"))))
+
+(defun make-or-raise-connect (remote usr pwd)
   "若已经有usr@remote的连接,则直接返回该连接process,否则新建一个连接process"
-  (let ((connect-name (format "plink-%s@%s" usr remote)))
+  (let ((connect-name (format "%s@%s" usr remote)))
 	(or (get-process connect-name)
-		(make-connect-by-plink remote usr pwd))))
+		(make-connect remote usr pwd))))
 
 (defun execute-monitor-command (cmd &optional process)
   "执行监控命令,会自动在监控命令后面添加回车符"
@@ -65,7 +80,7 @@ handler-rules的格式为由(match . action)组成的alist
 
 该函数返回连接到usr@remote的process,并且其filter-function为`monitor-filter-functiion'"
   (let (process)
-	(setq process (make-or-raise-connect-by-plink remote usr pwd))
+	(setq process (make-or-raise-connect remote usr pwd))
 	(set-process-filter process #'monitor-filter-function)
 	process))
 
@@ -106,6 +121,6 @@ handler-rules的格式为由(match . action)组成的alist
 								   :reaction-rules '(("8.%" . "echo do clean job")
 													 ("9.%" . "echo warnning clean job"))))
 
-(add-process-monitor "plink-cnaps2@10.8.6.10" 
+(add-process-monitor "cnaps2@10.8.6.10" 
 				(make-monitor :exam-cmd "df |grep 100%"
 							  :reaction-rules '(("." . "echo disk if full"))))
