@@ -53,42 +53,37 @@
   (process-put process 'output-finished flag))
 
 (defun execute-monitor-command (cmd &optional process)
-  "执行监控命令,会自动在监控命令后面添加回车符,并等待命令结果"
+  "执行监控命令,会自动在监控命令后面添加回车符,并返回命令结果"
   (let ((command (concat cmd "\n"))
-		(process (or process (get-buffer-process (current-buffer)))))
+		(process (or process (get-buffer-process (current-buffer))))
+		output)
 	(process-send-string process command)
 	(modify-process-output-finished process nil)
 	(while (not (process-output-finished-p process))
-	  (accept-process-output process nil nil t))))
+	  (accept-process-output process nil nil t))
+	(setf output (process-get process 'output))
+	(process-put process 'output "")
+	output))
 
 (defun monitor-filter-function (process output)
-  "该filter-function根据monitor中的handler-rules的规则来匹配后续动作.
+  "一直等到output完全读完才输出到buffer中,并把process的output-finished标志设为t
 
-handler-rules的格式为由(match . action)组成的alist
-
-当process的output匹配matchN时,执行actionN命令:若action为字符串,则往process发送action命令,否则action为函数,它接收output作为参数,并返回要发送給process的命令字符串"
+output是否读完,根据process的output-end-line来标识"
   (let* ((last-output (process-get process 'output))
-		 (output (concat last-output output))
-		 (monitor (process-get process 'current-monitor)))
+		 (output (concat last-output output)))
 	(process-put process 'output output)
 	(when (string-match-p (regexp-quote (process-get process 'output-end-line))
 						  output)		;output已经完全读出
 	  (modify-process-output-finished process t)
-	  ;; 清理
-	  (process-put process 'output "")
-	  (when monitor
-		(process-put process 'current-monitor nil)
-		(reaction process output monitor)))))
+	  (internal-default-process-filter process output))))
 
-(defun reaction (process output monitor)
-  "根据monitor中的handler-rules的规则来匹配后续动作.
+(defun reaction (process output reaction-rules)
+  "根据handler-rules的规则来匹配后续动作.
 
 handler-rules的格式为由(match . action)组成的alist
 
 当process的output匹配matchN时,执行actionN命令:若action为字符串,则往process发送action命令,否则action为函数,它接收output作为参数,并返回要发送給process的命令字符串"
-  (internal-default-process-filter process output)
-  (let* ((reaction-rules (monitor-reaction-rules monitor))
-		 (rule (assoc-if (lambda (match)
+  (let* ((rule (assoc-if (lambda (match)
 						   (or (eq match t)
 							   (string-match-p match output)))
 						 reaction-rules))
@@ -129,9 +124,11 @@ handler-rules的格式为由(match . action)组成的alist
 (defun do-monitor (process  monitor  )
   "向process发起监控命令,并根据reaction-rules来根据输出执行相应的action"
   (let ((exam-cmd (monitor-exam-cmd monitor))
-		(reaction-rules (monitor-reaction-rules monitor)))
+		(reaction-rules (monitor-reaction-rules monitor))
+		(output ""))
 	(process-put process 'current-monitor monitor)
-	(execute-monitor-command exam-cmd process)))
+	(setf output (execute-monitor-command exam-cmd process))
+	(reaction process output reaction-rules)))
 
 (defun do-monitors (process  &rest monitors)
   (dolist (monitor monitors)
