@@ -3,12 +3,6 @@
 (defstruct monitor exam-cmd
 		   reaction-rules)
 
-(defgroup monitor-group nil
-  "远程监控monitor")
-
-(defcustom *process-current-monitor-map* (make-hash-table)
-  "存放每个process当成正在处理哪个monitor")
-
 (defcustom *process-monitors-map* (make-hash-table)
   "存放每个process对应的monitor")
 
@@ -45,7 +39,7 @@ handler-rules的格式为由(match . action)组成的alist
 
 当process的output匹配matchN时,执行actionN命令:若action为字符串,则往process发送action命令,否则action为函数,它接收output作为参数,并返回要发送給process的命令字符串"
   (internal-default-process-filter process output)
-  (let* ((reaction-rules (monitor-reaction-rules (gethash process *process-current-monitor-map*)))
+  (let* ((reaction-rules (monitor-reaction-rules (process-get process 'current-monitor)))
 		 (rule (assoc-if (lambda (match)
 						   (or (eq match t)
 							   (string-match-p match output)))
@@ -53,9 +47,9 @@ handler-rules的格式为由(match . action)组成的alist
 		 (action (cdr rule)))
 	(when rule
 	  ;; 若dbus可用,则使用notification通知
-	  (when (dbus-avaliable-p)
-		(notifications-notify :title (process-name process)
-							  :body output))
+	  ;; (when (dbus-avaliable-p)
+	  ;; 	(notifications-notify :title (process-name process)
+	  ;; 						  :body output))
 	  ;; 执行action动作
 	  (cond ((stringp action)
 			 (execute-monitor-command action process))
@@ -80,7 +74,7 @@ handler-rules的格式为由(match . action)组成的alist
   "向process发起监控命令,并根据reaction-rules来根据输出执行相应的action"
   (let ((exam-cmd (monitor-exam-cmd monitor))
 		(reaction-rules (monitor-reaction-rules monitor)))
-	(setf (gethash process *process-current-monitor-map*) monitor)
+	(process-put process 'current-monitor monitor)
 	(execute-monitor-command exam-cmd process)
 	(accept-process-output process time-out nil t)))
 
