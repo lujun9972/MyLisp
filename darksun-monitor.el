@@ -1,3 +1,4 @@
+(require 'cl)
 (require 'notifications)
 
 (defstruct monitor exam-cmd
@@ -15,13 +16,13 @@
 
 (defun make-connect-by-plink (remote usr pwd)
   "通过plink建立与remote的远程连接"
-  (let* ((connect-name (format "%s@%s" usr remote))
+  (let* ((connect-name (format "plink-%s@%s" usr remote))
 		(connect-buffer connect-name))
 	(start-process connect-name connect-buffer "plink" "-l" usr "-pw" pwd remote)))
 
 (defun make-connect-by-ssh (remote usr pwd)
   "通过ssh建立与remote的远程连接"
-  (let* ((connect-name (format "%s@%s" usr remote))
+  (let* ((connect-name (format "ssh-%s@%s" usr remote))
 		(connect-buffer connect-name)
 		(process (start-process connect-name connect-buffer "ssh" "-l" usr remote)))
 	(accept-process-output process nil nil t)
@@ -41,12 +42,24 @@
 	(or (get-process connect-name)
 		(make-connect remote usr pwd))))
 
+(defun process-output-finished-p (process)
+  "process的output是否已经完全读取完毕"
+
+  (process-get process 'output-finished))
+
+(defun modify-process-output-finished (process flag)
+  "更改process的output-finished标志"
+
+  (process-put process 'output-finished flag))
+
 (defun execute-monitor-command (cmd &optional process)
   "执行监控命令,会自动在监控命令后面添加回车符,并等待命令结果"
   (let ((command (concat cmd "\n"))
 		(process (or process (get-buffer-process (current-buffer)))))
 	(process-send-string process command)
-	(accept-process-output process nil nil t)))
+	(modify-process-output-finished process nil)
+	(while (not (process-output-finished-p process))
+	  (accept-process-output process nil nil t))))
 
 (defun monitor-filter-function (process output)
   "该filter-function根据monitor中的handler-rules的规则来匹配后续动作.
@@ -55,12 +68,17 @@ handler-rules的格式为由(match . action)组成的alist
 
 当process的output匹配matchN时,执行actionN命令:若action为字符串,则往process发送action命令,否则action为函数,它接收output作为参数,并返回要发送給process的命令字符串"
   (let* ((last-output (process-get process 'output))
-		 (output (concat last-output output)))
+		 (output (concat last-output output))
+		 (monitor (process-get process 'current-monitor)))
 	(process-put process 'output output)
 	(when (string-match-p (regexp-quote (process-get process 'output-end-line))
-						  output)
+						  output)		;output已经完全读出
+	  (modify-process-output-finished process t)
+	  ;; 清理
 	  (process-put process 'output "")
-	  (reaction process output (process-get process 'current-monitor)))))
+	  (when monitor
+		(process-put process 'current-monitor nil)
+		(reaction process output monitor)))))
 
 (defun reaction (process output monitor)
   "根据monitor中的handler-rules的规则来匹配后续动作.
@@ -85,16 +103,20 @@ handler-rules的格式为由(match . action)组成的alist
 			 (execute-monitor-command action process))
 			((functionp action)
 			 (execute-monitor-command (funcall action  output) process))
-			(t (message "error action type[%s]" (type-of action)))))))
+			(t
+			 (error (format "error action type[%s]" (type-of action))))))))
 
-(defun start-monitor-process (remote usr pwd)
+(defun start-monitor-process (remote usr pwd &optional wait-time)
   "创建一个process用于执行monitor
 
 该函数返回连接到usr@remote的process,并且其filter-function为`monitor-filter-functiion'"
-  (let (process)
-	(setq process (make-or-raise-connect remote usr pwd))
+  (let ((process (setq process (make-or-raise-connect remote usr pwd)))
+		(wait-time (or wait-time 3)))
 	(process-put process 'output "")
-	(accept-process-output process nil nil t)
+	(while (accept-process-output process wait-time nil t) ;若一段时间内无值,则认为登录进去了,推出循环等待
+	  (sit-for 1))
+	(set-process-filter process #'monitor-filter-function)
+	;; (execute-monitor-command "" process)
 	(cl-labels ((get-last-line (process)
 							   "获取process buffer中最后一行的内容"
 							   (with-current-buffer (process-buffer process) 
@@ -102,7 +124,6 @@ handler-rules的格式为由(match . action)组成的alist
 								 (search-backward-regexp "[\r\n]")
 								 (buffer-substring-no-properties (1+ (point)) (point-max)))))
 	  (process-put process 'output-end-line (get-last-line process)))
-	(set-process-filter process #'monitor-filter-function)
 	process))
 
 (defun do-monitor (process  monitor  )
@@ -134,7 +155,7 @@ handler-rules的格式为由(match . action)组成的alist
 		   (remove-if-not #'monitor-process-p (process-list))))
 
 (setq a (start-monitor-process "localhost" "lujun9972" "7758521"))
-
+(process-get a 'output-last-line)
 (setq a (start-monitor-process "10.8.6.10" "cnaps2" "123456"))
 
 (add-process-monitor a 
@@ -142,6 +163,6 @@ handler-rules的格式为由(match . action)组成的alist
 								   :reaction-rules '(("8.%" . "echo do clean job")
 													 ("9.%" . "echo warnning clean job"))))
 
-(add-process-monitor "lujun9972@localhost" 
+(add-process-monitor a
 				(make-monitor :exam-cmd "sleep 10;df "
 							  :reaction-rules '(("%" . "echo disk if full"))))
