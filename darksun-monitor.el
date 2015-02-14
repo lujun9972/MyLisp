@@ -3,10 +3,13 @@
 (defstruct monitor exam-cmd
 		   reaction-rules)
 
-(defcustom *process-monitors-map* (make-hash-table)
-  "存放每个process对应的monitor")
+(defun monitor-process-p (process)
+  "判断process是否为monitor process
 
-(defcustom *time-out* 10
+若某process的monitors不为nil时,为monitor process"
+  (process-get process 'monitors))
+
+(defvar *time-out* 10
   "每个monitor执行后获取output的超时时间")
 
 (defun dbus-avaliable-p ()
@@ -60,13 +63,9 @@ handler-rules的格式为由(match . action)组成的alist
 (defun start-monitor-process (remote usr pwd)
   "创建一个process用于执行monitor
 
-当该process没有存放于`*process-monitors-map*'中作为key时,则加入到`*process-monitors-map*'中
-
 该函数返回连接到usr@remote的process,并且其filter-function为`monitor-filter-functiion'"
   (let (process)
 	(setq process (make-or-raise-connect-by-plink remote usr pwd))
-	(unless (gethash process *process-monitors-map*)
-	  (setf (gethash process *process-monitors-map*) nil))
 	(set-process-filter process #'monitor-filter-function)
 	process))
 
@@ -89,15 +88,15 @@ handler-rules的格式为由(match . action)组成的alist
 		((bufferp process)
 		 (setq process (get-buffer-process process))))
   (if (processp process)
-	  (pushnew monitor (gethash process *process-monitors-map* ))
+	  (pushnew monitor (process-get process 'monitors))
 	(error "process表示的进程不存在!")))
 
 (defun active-all-processes-monitors ()
   "激活*process-monitors-map*中所有的process,让他们执行对应的monitors"
   (interactive)
-  (maphash (lambda (process monitors)
-			 (apply #'do-monitors process *time-out* monitors))
-		   *process-monitors-map*))
+  (mapc (lambda (process)
+			 (apply #'do-monitors process *time-out* (process-get process 'monitors)))
+		   (remove-if-not #'monitor-process-p (process-list))))
 
 
 (setq a (start-monitor-process "10.8.6.10" "cnaps2" "123456"))
