@@ -1,5 +1,6 @@
 (require 'cl)
 (require 'notifications)
+(require 'darksun-process-helper)
 
 (defstruct monitor exam-cmd
 		   reaction-rules)
@@ -9,10 +10,6 @@
 
 若某process的monitors不为nil时,为monitor process"
   (process-get process 'monitors))
-
-(defun dbus-avaliable-p ()
-	"判断Emacs是否编译时支持D-Bus"
-	(featurep 'dbusbind))
 
 (defun make-connect-by-plink (remote usr pwd)
   "通过plink建立与remote的远程连接"
@@ -42,15 +39,6 @@
 	(or (get-process connect-name)
 		(make-connect remote usr pwd))))
 
-(defun process-output-finished-p (process)
-  "process的output是否已经完全读取完毕"
-
-  (process-get process 'output-finished))
-
-(defun modify-process-output-finished (process flag)
-  "更改process的output-finished标志"
-
-  (process-put process 'output-finished flag))
 
 (defun execute-monitor-command (cmd &optional process)
   "执行监控命令,会自动在监控命令后面添加回车符,并返回命令结果"
@@ -58,24 +46,7 @@
 		(process (or process (get-buffer-process (current-buffer))))
 		output)
 	(process-send-string process command)
-	(modify-process-output-finished process nil)
-	(while (not (process-output-finished-p process))
-	  (accept-process-output process nil nil t))
-	(setf output (process-get process 'output))
-	(process-put process 'output "")
-	output))
-
-(defun monitor-filter-function (process output)
-  "一直等到output完全读完才输出到buffer中,并把process的output-finished标志设为t
-
-output是否读完,根据process的output-end-line来标识"
-  (let* ((last-output (process-get process 'output))
-		 (output (concat last-output output)))
-	(process-put process 'output output)
-	(when (string-match-p  (process-get process 'output-end-line)
-						   output)		;output已经完全读出
-	  (modify-process-output-finished process t)
-	  (internal-default-process-filter process output))))
+	(get-process-complete-output process)))
 
 (defun reaction (process output reaction-rules)
   "根据handler-rules的规则来匹配后续动作.
@@ -90,9 +61,9 @@ handler-rules的格式为由(match . action)组成的alist
 		 (action (cdr rule)))
 	(when rule
 	  ;; 若dbus可用,则使用notification通知
-	  ;; (when (dbus-avaliable-p)
-	  ;; 	(notifications-notify :title (process-name process)
-	  ;; 						  :body output))
+	  (when (featurep 'dbusbind)
+	  	(notifications-notify :title (process-name process)
+	  						  :body output))
 	  ;; 执行action动作
 	  (cond ((stringp action)
 			 (execute-monitor-command action process))
@@ -110,14 +81,13 @@ handler-rules的格式为由(match . action)组成的alist
 	(process-put process 'output "")
 	(while (accept-process-output process wait-time nil t) ;若一段时间内无值,则认为登录进去了,推出循环等待
 	  (sit-for 1))
-	(set-process-filter process #'monitor-filter-function)
 	(cl-labels ((get-last-line (process)
 							   "获取process buffer中最后一行的内容"
 							   (with-current-buffer (process-buffer process) 
 								 (goto-char (point-max))
 								 (search-backward-regexp "[\r\n]")
 								 (buffer-substring-no-properties (1+ (point)) (point-max)))))
-	  (process-put process 'output-end-line (regexp-quote (get-last-line process))))
+	  (set-process-filter process (make-complete-filter-function process (regexp-quote (get-last-line process)))))
 	process))
 
 (defun do-monitor (process  monitor  )
