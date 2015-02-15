@@ -39,13 +39,13 @@
 ;;;; 创建远程连接
 (defun make-connect-by-plink (remote usr pwd)
   "通过plink建立与remote的远程连接"
-  (let* ((connect-name (format "plink-%s@%s" usr remote))
+  (let* ((connect-name (format "%s@%s" usr remote))
 		 (connect-buffer connect-name))
 	(start-process connect-name connect-buffer "plink" "-l" usr "-pw" pwd remote)))
 
 (defun make-connect-by-ssh (remote usr pwd)
   "通过ssh建立与remote的远程连接"
-  (let* ((connect-name (format "ssh-%s@%s" usr remote))
+  (let* ((connect-name (format "%s@%s" usr remote))
 		 (connect-buffer connect-name)
 		 (process (start-process connect-name connect-buffer "ssh" "-l" usr remote)))
 	(accept-process-output process nil nil t)
