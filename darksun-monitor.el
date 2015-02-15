@@ -1,5 +1,4 @@
 (require 'cl)
-(require 'notifications)
 (require 'darksun-process-helper)
 
 (defstruct monitor exam-cmd
@@ -46,7 +45,7 @@
 		(process (or process (get-buffer-process (current-buffer))))
 		output)
 	(process-send-string process command)
-	(get-process-complete-output process)))
+	(get-process-complete-output process (process-get process 'end-output-regex))))
 
 (defun reaction (process output reaction-rules)
   "根据handler-rules的规则来匹配后续动作.
@@ -62,6 +61,7 @@ handler-rules的格式为由(match . action)组成的alist
 	(when rule
 	  ;; 若dbus可用,则使用notification通知
 	  (when (featurep 'dbusbind)
+		(require 'notifications)
 	  	(notifications-notify :title (process-name process)
 	  						  :body output))
 	  ;; 执行action动作
@@ -87,7 +87,7 @@ handler-rules的格式为由(match . action)组成的alist
 								 (goto-char (point-max))
 								 (search-backward-regexp "[\r\n]")
 								 (buffer-substring-no-properties (1+ (point)) (point-max)))))
-	  (set-process-filter process (make-complete-filter-function process (regexp-quote (get-last-line process)))))
+	  (process-put process 'end-output-regex (regexp-quote (get-last-line process))))
 	process))
 
 (defun do-monitor (process  monitor  )
@@ -121,8 +121,8 @@ handler-rules的格式为由(match . action)组成的alist
 		   (remove-if-not #'monitor-process-p (process-list))))
 
 (setq a (start-monitor-process "localhost" "lujun9972" "7758521"))
-(process-get a 'output-last-line)
 (setq a (start-monitor-process "10.8.6.10" "cnaps2" "123456"))
+(process-get a 'end-output-regex)
 
 (add-process-monitor a 
 					 (make-monitor :exam-cmd "df"
