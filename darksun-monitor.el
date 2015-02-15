@@ -1,6 +1,7 @@
 (require 'cl)
 (require 'darksun-process-helper)
 
+
 (defstruct monitor exam-cmd
 		   reaction-rules)
 
@@ -9,34 +10,6 @@
 
 若某process的monitors不为nil时,为monitor process"
   (process-get process 'monitors))
-
-(defun make-connect-by-plink (remote usr pwd)
-  "通过plink建立与remote的远程连接"
-  (let* ((connect-name (format "plink-%s@%s" usr remote))
-		(connect-buffer connect-name))
-	(start-process connect-name connect-buffer "plink" "-l" usr "-pw" pwd remote)))
-
-(defun make-connect-by-ssh (remote usr pwd)
-  "通过ssh建立与remote的远程连接"
-  (let* ((connect-name (format "ssh-%s@%s" usr remote))
-		(connect-buffer connect-name)
-		(process (start-process connect-name connect-buffer "ssh" "-l" usr remote)))
-	(accept-process-output process nil nil t)
-	(process-send-string process (concat pwd "\n") )
-	process))
-
-(defun make-connect (remote usr pwd)
-  (cond ((executable-find "plink")
-		 (make-connect-by-plink remote usr pwd))
-		((executable-find "ssh")
-		 (make-connect-by-ssh remote usr pwd))
-		(t (error "没找到建立远程连接的程序"))))
-
-(defun make-or-raise-connect (remote usr pwd)
-  "若已经有usr@remote的连接,则直接返回该连接process,否则新建一个连接process"
-  (let ((connect-name (format "%s@%s" usr remote)))
-	(or (get-process connect-name)
-		(make-connect remote usr pwd))))
 
 
 (defun execute-monitor-command (cmd &optional process)
@@ -72,24 +45,6 @@ handler-rules的格式为由(match . action)组成的alist
 			(t
 			 (error (format "error action type[%s]" (type-of action))))))))
 
-(defun start-monitor-process (remote usr pwd &optional wait-time)
-  "创建一个process用于执行monitor
-
-该函数返回连接到usr@remote的process,并且其filter-function为`monitor-filter-functiion'"
-  (let ((process (setq process (make-or-raise-connect remote usr pwd)))
-		(wait-time (or wait-time 3)))
-	(process-put process 'output "")
-	(while (accept-process-output process wait-time nil t) ;若一段时间内无值,则认为登录进去了,推出循环等待
-	  (sit-for 1))
-	(cl-labels ((get-last-line (process)
-							   "获取process buffer中最后一行的内容"
-							   (with-current-buffer (process-buffer process) 
-								 (goto-char (point-max))
-								 (search-backward-regexp "[\r\n]")
-								 (buffer-substring-no-properties (1+ (point)) (point-max)))))
-	  (process-put process 'end-output-regex (regexp-quote (get-last-line process))))
-	process))
-
 (defun do-monitor (process  monitor  )
   "向process发起监控命令,并根据reaction-rules来根据输出执行相应的action"
   (let ((exam-cmd (monitor-exam-cmd monitor))
@@ -120,15 +75,4 @@ handler-rules的格式为由(match . action)组成的alist
 			 (apply #'do-monitors process  (process-get process 'monitors)))
 		   (remove-if-not #'monitor-process-p (process-list))))
 
-(setq a (start-monitor-process "localhost" "lujun9972" "7758521"))
-(setq a (start-monitor-process "10.8.6.10" "cnaps2" "123456"))
-(process-get a 'end-output-regex)
-
-(add-process-monitor a 
-					 (make-monitor :exam-cmd "df"
-								   :reaction-rules '(("8.%" . "echo do clean job")
-													 ("9.%" . "echo warnning clean job"))))
-
-(add-process-monitor a
-				(make-monitor :exam-cmd "sleep 10;df "
-							  :reaction-rules '(("%" . "echo disk if full"))))
+(provide 'darksun-monitor)
