@@ -65,12 +65,13 @@
 	(or (get-process connect-name)
 		(make-connect remote usr pwd))))
 
-(defun start-connect-process (remote usr pwd &optional wait-time)
+(defun start-connect-process (remote usr &optional pwd wait-time)
   "创建一个与远程服务器相连的连接process
 
 该函数返回连接到usr@remote的process,并且该process的end-output-regex记录了命令提示符的值,可以使用命令提示符来标识一个命令是否执行完毕"
-  (let ((process (make-or-raise-connect remote usr pwd))
-		(wait-time (or wait-time 3)))
+  (let* ((pwd (or pwd (read-passwd (format "请输入%s@%s的登录密码:" usr remote))))
+		 (wait-time (or wait-time 3))
+		 (process (make-or-raise-connect remote usr pwd)))
 	(process-put process 'output "")
 	(get-process-complete-output process wait-time) ;确定登录完成了
 	(cl-labels ((get-last-line (process)
