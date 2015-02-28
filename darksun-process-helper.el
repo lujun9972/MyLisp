@@ -20,17 +20,16 @@
 		(process-put process 'output (concat last-output output))
 		(funcall filter-function process output)))))
 
-(defun get-process-complete-output (process end-regex-or-time)
+(defun get-process-complete-output (process &optional end-regex end-time)
   "获取process的完整output"
   (let ((originally-filter-function (process-filter process))
 		output)
 	(set-process-filter process (make-output-filter-function originally-filter-function))
-	(cond ((stringp end-regex-or-time)
-		   (while (not (string-match-p end-regex-or-time (process-get process 'output))) ;若获取到的值符合end-regex,则表示读取到了完整的output
-			 (accept-process-output process nil nil t)))
-		  ((numberp end-regex-or-time)
-		   (while (accept-process-output process end-regex-or-time nil t) ;若一段时间内无值,则认为已经读取了完整的output,退出循环等待
-			 )))
+	(if (stringp end-regex)
+		(while (and (not (string-match-p end-regex (process-get process 'output))) ;若获取到的值符合end-regex,则表示读取到了完整的output
+					(accept-process-output process end-time nil t)))
+	  (while (accept-process-output process end-time nil t) ;若一段时间内无值,则认为已经读取了完整的output,退出循环等待
+		))
 	(setf output (process-get process 'output))
 	(process-put process 'output "")
 	(set-process-filter process originally-filter-function)
