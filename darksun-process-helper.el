@@ -74,7 +74,6 @@
 	"创建一个与远程服务器相连的连接process
 
 该函数返回连接到usr@remote的process,并且该process的end-output-regex记录了命令提示符的值,可以使用命令提示符来标识一个命令是否执行完毕"
-<<<<<<< HEAD
 	(let* ((pwd (or pwd (read-passwd (format "请输入%s@%s的登录密码:" usr remote))))
 		   (wait-time (or wait-time 3))
 		   (process (make-or-raise-connect remote usr pwd)))
@@ -88,21 +87,6 @@
 								   (buffer-substring-no-properties (1+ (point)) (point-max)))))
 		(process-put process 'end-output-regex (regexp-quote (get-last-line process))))
 	  process))
-=======
-  (let ((process (make-or-raise-connect remote usr pwd))
-		(wait-time (or wait-time 3)))
-	(process-put process 'output "")
-	(get-process-complete-output process nil wait-time) ;确定登录完成了
-	(cl-labels ((get-last-line (process)
-							   "获取process buffer中最后一行的内容"
-							   (with-current-buffer (process-buffer process) 
-								 (goto-char (point-max))
-								 (search-backward-regexp "[\r\n]")
-								 (buffer-substring-no-properties (1+ (point)) (point-max)))))
-	  (process-put process 'end-output-regex (regexp-quote (get-last-line process))))
-	(switch-to-buffer (process-buffer process))
-	process))
->>>>>>> 3348b04deee18c5e682b85f2c2661cc2119da8dc
 
   (provide 'darksun-process-helper)
 
