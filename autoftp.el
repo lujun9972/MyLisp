@@ -12,6 +12,8 @@
 
 (defgroup autoftp-group nil "自动ftp到remote machine")
 (defcustom local-remote-root-pairs '(("e:/git-svn/server/" . "/cnaps2@10.8.6.10:")
+									 ("/cygdrive/e/git-svn/server/" . "/cnaps2@10.8.6.10:")
+									 ("~/trunk/" . "/cnaps2@10.8.6.10:")
 									 ("d:/workcvs/ibps/ibps" . "/ibpsusr@10.8.6.10:"))
   "本地项目root与对应的remote地址的alist
 

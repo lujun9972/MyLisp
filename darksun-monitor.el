@@ -1,3 +1,21 @@
+;; 使用说明:
+;; 0. 在使用前,请保证系统有plink或ssh
+;; 1. 加载monitor库:
+;; (require 'darksun-monitor)
+;; 2. 创建一个process连接到要监控的远程机器上
+;; (setq p1 (start-connect-process "10.8.6.10" "cnaps2" "123456"))
+;; 3. 可以创建多个process连接到不同的远程机器上
+;; 4. 创建一个monitor,一个monitor由要执行的检测命令,以及根据检测命令的返回结果指定相应回应命令的rule列表组成
+;; (setq m1 (make-monitor :exam-cmd "df |grep cnaps2"
+;; 							 :reaction-rules '(("[89]?%" . "echo disk is almost full")
+;; 											   ("100%" . "echo disk is full! please clean it"))))
+;; 5. 使用add-process-monitor将monitor应用到表示远程机器的process上
+;; (add-process-monitor p1 m1)
+;; 6. 可以为一个process添加多个monitor
+;; 7. 执行(active-all-processes-monitors)会执行次所有process中的所有monitor
+;; 8. 若想每隔10s钟自动激活一次process中的所有monitor,可以:
+;; (setq t1 (run-at-time 0 10 #'active-all-processes-monitors))
+
 (require 'cl)
 (require 'darksun-process-helper)
 
@@ -33,10 +51,10 @@ handler-rules的格式为由(match . action)组成的alist
 		 (action (cdr rule)))
 	(when rule
 	  ;; 若dbus可用,则使用notification通知
-	  (when (featurep 'dbusbind)
-		(require 'notifications)
-	  	(notifications-notify :title (process-name process)
-	  						  :body output))
+	  ;; (when (featurep 'dbusbind)
+	  ;; 	(require 'notifications)
+	  ;; 	(notifications-notify :title (process-name process)
+	  ;; 						  :body output))
 	  ;; 执行action动作
 	  (cond ((stringp action)
 			 (execute-monitor-command action process))

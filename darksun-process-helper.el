@@ -28,21 +28,18 @@
 	   ,@bodys
 	   (set-process-filter ,process ,ori-filter-function))))
 
-(defun get-process-complete-output (process end-regex-or-time)
+(defun get-process-complete-output (process &optional end-regex end-time)
   "获取process的完整output"
   (let (output)
 	(with-filter-function process (make-output-filter-function (process-filter process))
-						  (cond ((stringp end-regex-or-time)
-								 ;; 若获取到的值符合end-regex,则表示读取到了完整的output
-								 (while (not (string-match-p end-regex-or-time (process-get process 'output)))
-								   (accept-process-output process nil nil t)))
-								;; 若一段时间内无值,则认为已经读取了完整的output,退出循环等待
-								((numberp end-regex-or-time)
-								 (while (accept-process-output process end-regex-or-time nil t) 
-								   ))))
-						  (setf output (process-get process 'output))
-						  (process-put process 'output "")
-						  output))
+						  (if (stringp end-regex)
+							  (while (and (not (string-match-p end-regex (process-get process 'output))) ;若获取到的值符合end-regex,则表示读取到了完整的output
+										  (accept-process-output process end-time nil t)))
+							(while (accept-process-output process end-time nil t) ;若一段时间内无值,则认为已经读取了完整的output,退出循环等待
+							  )))
+	(setf output (process-get process 'output))
+	(process-put process 'output "")
+	output))
 
 ;;;; 创建远程连接
   (defun make-connect-by-plink (remote usr pwd)
@@ -77,6 +74,7 @@
 	"创建一个与远程服务器相连的连接process
 
 该函数返回连接到usr@remote的process,并且该process的end-output-regex记录了命令提示符的值,可以使用命令提示符来标识一个命令是否执行完毕"
+<<<<<<< HEAD
 	(let* ((pwd (or pwd (read-passwd (format "请输入%s@%s的登录密码:" usr remote))))
 		   (wait-time (or wait-time 3))
 		   (process (make-or-raise-connect remote usr pwd)))
@@ -90,6 +88,21 @@
 								   (buffer-substring-no-properties (1+ (point)) (point-max)))))
 		(process-put process 'end-output-regex (regexp-quote (get-last-line process))))
 	  process))
+=======
+  (let ((process (make-or-raise-connect remote usr pwd))
+		(wait-time (or wait-time 3)))
+	(process-put process 'output "")
+	(get-process-complete-output process nil wait-time) ;确定登录完成了
+	(cl-labels ((get-last-line (process)
+							   "获取process buffer中最后一行的内容"
+							   (with-current-buffer (process-buffer process) 
+								 (goto-char (point-max))
+								 (search-backward-regexp "[\r\n]")
+								 (buffer-substring-no-properties (1+ (point)) (point-max)))))
+	  (process-put process 'end-output-regex (regexp-quote (get-last-line process))))
+	(switch-to-buffer (process-buffer process))
+	process))
+>>>>>>> 3348b04deee18c5e682b85f2c2661cc2119da8dc
 
   (provide 'darksun-process-helper)
 
