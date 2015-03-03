@@ -53,7 +53,7 @@
 
 (defcustom useful-buffer-names 
 	'("*Tree*")
-	"无用buffer的名称列表"
+	"有用buffer的名称列表"
 	:group 'clean-buffers
 	:type '(repeat regexp))
 
