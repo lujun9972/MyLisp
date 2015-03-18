@@ -35,3 +35,20 @@
     将表示奖励物品的entry设置为完成状态表示购买该奖励物品,需要消耗积分. 若积分不够,则会阻止购买,即该entry无法变为完成状态
 
   * 执行`M-x org-gamification-end'来退出游戏状态
+
+* autoftp
+
+  由于经常需要在本地编辑代码后上传到远程服务器上编译,因此写了这么个小东西,每次保存文件时自动通过tramp上传到远程服务器上.
+
+  * 配置`autoftp-local-remote-root-alist'变量
+
+    该变量指明了本地路径的文件应该上传到远程服务器的哪个地方,即它为本地项目root与对应的remote地址的alist
+
+    其中remote-root的格式应为/username@ip:/path/to/root/
+
+  * 使用`(require 'autofetp)'加载代码
+
+  * 使用`M-x turn-on-auto-ftp'进入自动上传状态,这时保存本地文件会自动上传到远程服务器上
+
+  * 使用`M-x turn-off-auto-ftp'退出自动上传状态.
+
