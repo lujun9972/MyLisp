@@ -1,21 +1,3 @@
-;; 使用说明:
-;; 0. 在使用前,请保证系统有plink或ssh
-;; 1. 加载monitor库:
-;; (require 'darksun-monitor)
-;; 2. 创建一个process连接到要监控的远程机器上
-;; (setq p1 (start-connect-process "10.8.6.10" "cnaps2" "123456"))
-;; 3. 可以创建多个process连接到不同的远程机器上
-;; 4. 创建一个monitor,一个monitor由要执行的检测命令,以及根据检测命令的返回结果指定相应回应命令的rule列表组成
-;; (setq m1 (make-monitor :exam-cmd "df |grep cnaps2"
-;; 							 :reaction-rules '(("[89]?%" . "echo disk is almost full")
-;; 											   ("100%" . "echo disk is full! please clean it"))))
-;; 5. 使用add-process-monitor将monitor应用到表示远程机器的process上
-;; (add-process-monitor p1 m1)
-;; 6. 可以为一个process添加多个monitor
-;; 7. 执行(active-all-processes-monitors)会执行次所有process中的所有monitor
-;; 8. 若想每隔10s钟自动激活一次process中的所有monitor,可以:
-;; (setq t1 (run-at-time 0 10 #'active-all-processes-monitors))
-
 (require 'cl)
 (require 'darksun-process-helper)
 
@@ -41,7 +23,7 @@
 (defun reaction (process output reaction-rules)
   "根据handler-rules的规则来匹配后续动作.
 
-handler-rules的格式为由(match . action)组成的alist
+reaction-rules的格式为由(match . action)组成的alist
 
 当process的output匹配matchN时,执行actionN命令:若action为字符串,则往process发送action命令,否则action为函数,它接收output作为参数,并返回要发送給process的命令字符串"
   (let* ((rule (assoc-if (lambda (match)
