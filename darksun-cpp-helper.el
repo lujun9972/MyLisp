@@ -1,21 +1,27 @@
-(defun goto-tag-of-current-word()
-  "查找当前光标下的tag"
+(defvar find-tag-functions '(find-tag)
+  "用来查找tag的函数列表")
+
+(defun goto-tag-of-current-word(&optional word)
+  "查找当前光标下的tag
+
+会使用`find-tag-functions'中第一个有效的函数来查询tag"
   (interactive)
-  (let ((word (current-word)))
+  (let ((word (or word (current-word)))
+		(find-tag-function (find-if #'functionp find-tag-functions)))
 	(if (and imenu--index-alist (imenu--in-alist word imenu--index-alist))
 		(imenu--menubar-select (imenu--in-alist word imenu--index-alist))
-	  (find-tag word))))
+	  (funcall find-tag-function word))))
 
 
  (defun find-current-tag-info(tag-name)
    "查找tag所在的文件名和位置"
-  (let ((old-buffer (current-buffer))(old-pos (point))(tag-file-name)(tag-position))
-	  (save-selected-window
-		(find-tag tag-name)
+   (let ((tag-file-name)
+		 (tag-position)
+		 (find-tag-function (find-if #'functionp find-tag-functions)))
+	  (save-excursion
+		(funcall find-tag-function tag-name)
 		(setf tag-file-name (buffer-file-name))
-		(setf tag-position (point)))
-	(switch-to-buffer old-buffer)
-	(goto-char old-pos)))
+		(setf tag-position (point)))))
 
 ;; 切换h/cpp文件
 (defun switch-extension(extension)
