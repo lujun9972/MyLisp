@@ -6,38 +6,6 @@
 		(imenu--menubar-select (imenu--in-alist word imenu--index-alist))
 	  (find-tag word))))
 
-(defvar *preview-buffer-prefix* "*preview-buffer*"
-  "设置指定名称的window为预览窗口")
-
-(defvar *preview-buffer-name* "*preview-buffer*"
-  "设置指定名称的window为预览窗口")
-
-(defun get-preview-buffer-create()
-  "获得preview-buffer"
-  (get-buffer-create *preview-buffer-name*))
-						 
-;; (defun get-preview-window-create()
-;;   "获得preview-window"
-;;   (let ((preview-window (get-buffer-window *preview-buffer-name*)))
-;; 	(when (not preview-window);如果预览窗口不存在
-;; 	  (message "新建预览窗口")
-;; 	  (setf preview-window (split-window))
-;; 	  (set-window-buffer preview-window (get-preview-buffer-create)))
-;; 	preview-window))
-
-(defvar *preview-window* nil)
-(defun get-preview-window-create()
-  "获得preview-window"
-  (when (not (and *preview-window* (window-live-p *preview-window*)));如果预览窗口不存在
-	(message "新建预览窗口")
-	(setf *preview-window* (split-window))
-	(set-window-buffer *preview-window* (get-preview-buffer-create)))
-  *preview-window*)
-
-(defun goto-preview-window()
-  "将光标移动到preview-window上"
-  (interactive)
-  (select-window (get-preview-window-create)))
 
  (defun find-current-tag-info(tag-name)
    "查找tag所在的文件名和位置"
@@ -48,40 +16,8 @@
 		(setf tag-position (point)))
 	(switch-to-buffer old-buffer)
 	(goto-char old-pos)))
-(defun preview-buffer-p(buffer-or-name)
-  "判断是否为preview-buffer"
-  (let ((buffer-name))
-	(if (bufferp buffer-or-name)
-		(setf buffer-name (buffer-name buffer-or-name))
-	  (setf buffer-name buffer-or-name))
-	(string-prefix-p *preview-buffer-prefix* buffer-name)))
-   
-(defun get-preview-buffer-name(buffer-or-name)
-  "计算出preview-buffer的名称
-如果buffer已经是preview-buffer则名称不变,否则在buffer名前加上preview-buffer-prefix"
-  (let ((buffer-name))
-	(if (bufferp buffer-or-name)
-		(setf buffer-name (buffer-name buffer-or-name))
-	  (setf buffer-name buffer-or-name))
-	(if (preview-buffer-p buffer-name)
-		buffer-name
-	  (concat *preview-buffer-prefix* buffer-name))))
 
-(defun preview-tag-of-current-word()
-  "在预览窗口中查找当前光标下的tag"
-  (interactive)
-  (let ((old-buffer (current-buffer))(old-pos (point))(tag-buffer))
-	(save-selected-window
-	  (find-tag (current-word))
-	  (setf tag-buffer (clone-indirect-buffer (get-preview-buffer-name (current-buffer)) nil)))
-	(switch-to-buffer old-buffer)
-	(goto-char old-pos)
-	(goto-preview-window)
-	(kill-buffer *preview-buffer-name*)
-	(switch-to-buffer tag-buffer)
-	(setf *preview-buffer-name* (buffer-name))
-	))
-
+;; 切换h/cpp文件
 (defun switch-extension(extension)
   (if (or (string-equal extension "h") (string-equal extension "hpp"))
 	  "cpp"
@@ -107,7 +43,8 @@
   "当前文件在头/实现文件之间切换"
   (interactive)
   (switch-head-body (buffer-file-name)))
-		
+
+;; 插入追踪日志
 (defun cpp-parse-function-arg (arg-string)
   "解析单个函数参数声明中的参数信息,返回'(参数名 . 类型信息)"
   (let ((arg-elements (split-string arg-string)) arg-name arg-type)
