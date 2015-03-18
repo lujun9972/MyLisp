@@ -52,3 +52,29 @@
 
   * 使用`M-x turn-off-auto-ftp'退出自动上传状态.
 
+* darksun-clean-buffer
+
+  Emacs用久了,就会有很多形形色色的buffer存在,这些buffer不仅耗费系统资源而且显得很凌乱,因此写了个东西自动关闭这些buffer
+
+  * 变量`kill-active-buffer'指示了是否清理正在显示的buffer
+
+  * 变量`kill-process-holding-buffer'指示了是否清理被某个process所持有的buffer
+    
+     不建议清理被process所持有的buffer,因为关闭该buffer意味着该process也会被kill掉
+
+  * 变量`judge-useless-buffer-functions'指明了使用哪些函数来判断某个buffer是否可以被清理.
+
+    用于判断buffer的函数会接收buffer作为唯一参数,并在buffer为无用时返回非nil
+	
+	目前提供两个判断函数分别为`judge-useless-buffer-by-time'和`judge-useless-buffer-by-name' 
+	
+	*`juege-useless-buffer-by-time'的实现上貌似有问题,不建议使用*
+
+  * 若使用judge-useless-buffer-by-name作为判断buffer是否可以被清理的函数,则可以通过配置变量`useless-buffer-name'来将符合其中正则表达式的buffer清理掉
+
+  * 运行`M-x kill-useless-buffers'即可清理掉无用的buffer
+
+  * 若想让Emacs自动清理无用的buffer,可以使用定时器函数`run-with-timer'
+	#+BEGIN_SRC emacs-lisp
+      (run-with-timer 0 5 #'kill-useless-buffers) ;每5秒清理一次buffer
+	#+END_SRC
