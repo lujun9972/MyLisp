@@ -10,9 +10,9 @@
 
   * 设置`code-library-mode-file-alist'
 
-	该变量指定了哪种编程语言存放到哪个org文件中. 
+    该变量指定了哪种编程语言存放到哪个org文件中. 
 
-	改变量的元素格式为'(major-mode . org-filename)
+    改变量的元素格式为'(major-mode . org-filename)
 
   * 使用时,在Emacs中选中要收集的代码块,然后运行M-x code-library-save-code. 然后输入代码说明并为代码设置tag即可
 
@@ -26,12 +26,12 @@
 
   * 执行`M-x org-gamification-start'则会进入游戏状态. 这时每完成一个事项即可增加积分.
 	
-	默认情况下[#A]级任务增加30积分,[#B]级任务增加20积分,[#C]级任务增加10积分.
+    默认情况下[#A]级任务增加30积分,[#B]级任务增加20积分,[#C]级任务增加10积分.
    
-	但可以通过为每个entry设置REWARD属性的方式自定义完成该entry所获得的奖励积分数,需要为整数.
+    但可以通过为每个entry设置REWARD属性的方式自定义完成该entry所获得的奖励积分数,需要为整数.
 
   * 可以使用`M-x org-gamification-add-reward'来添加想购买的奖励物品
 
-	将表示奖励物品的entry设置为完成状态表示购买该奖励物品,需要消耗积分. 若积分不够,则会阻止购买,即该entry无法变为完成状态
+    将表示奖励物品的entry设置为完成状态表示购买该奖励物品,需要消耗积分. 若积分不够,则会阻止购买,即该entry无法变为完成状态
 
   * 执行`M-x org-gamification-end'来退出游戏状态
