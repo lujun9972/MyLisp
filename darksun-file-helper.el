@@ -44,3 +44,6 @@ load-file-name is nil. You want to be able to get the current
 file's full path regardless the file is run by “load” or
 interactively by “eval-buffer”."
   (file-concat (or load-file-name buffer-file-name) file-relative-path))
+
+
+(provide 'darksun-file-helper)

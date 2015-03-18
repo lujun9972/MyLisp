@@ -30,3 +30,5 @@
   (if (region-active-p) 
 	  (buffer-substring-no-properties (region-beginning) (region-end))
 	(thing-at-point THING)))
+
+(provide 'darksun-buffer-helper)

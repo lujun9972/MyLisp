@@ -1,7 +1,7 @@
 ;; 记录代码片段到特定文件中
 (require 'darksun-file-helper)
 (require 'darksun-buffer-helper)
-(defgroup 'code-library-group nil
+(defgroup code-library-group nil
   "代码库设置")
 (defcustom code-library-mode-file-alist '((c++-mode . "cpp.org")
                         (emacs-lisp-mode . "elisp.org")
