@@ -25,8 +25,8 @@
   (let* ((ori-filter-function (gensym)))
 	`(let ((,ori-filter-function (process-filter ,process)))
 	   (set-process-filter ,process ,filter-function)
-	   ,@bodys
-	   (set-process-filter ,process ,ori-filter-function))))
+	   (unwind-protect (progn ,@bodys)
+		 (set-process-filter ,process ,ori-filter-function)))))
 
 (defun get-process-complete-output (process &optional end-regex end-time)
   "获取process的完整output"
