@@ -26,4 +26,4 @@
   (interactive)
   (remove-hook 'after-save-hook #'realtime-preview t))
 
-(provide 'org-realtime-preview.el)
+(provide 'org-realtime-preview)
