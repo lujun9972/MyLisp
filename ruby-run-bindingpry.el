@@ -30,6 +30,7 @@
 	(let ((buffer (get-buffer-create  pry-buffer)))  
 	  (apply 'make-comint-in-buffer pry-buffer buffer ;call pry
 			 pry-program pry-arguments)  
+	  (pop-to-buffer-same-window buffer)
 	  (pry-mode))))  					;enable pry-mode
 
 ;; 關於 pry-mode (由 run-pry 呼叫)的細節設定  
