@@ -12,6 +12,19 @@
 	(insert-file-contents-literally path)
 	(md5 (buffer-string))))
 
+(defun file-content(file)
+  "返回file的文件内容"
+  (with-temp-buffer
+	(insert-file-contents file)
+	(buffer-string)))
+
+(defun file-name-directory-name-of-path (path)
+  "文件所属的目录名称,仅仅只是包含该文件的目录名称"
+  (let ((dir (file-name-directory path))) 
+	(if (string-match ".+[/\\]\\([^/\\]+\\)[/\\]$" dir)
+		(match-string 1 dir)
+	  dir)))
+
 ;; 以下函数摘自李杀网
 (defun fullpath-relative-to-current-file (file-relative-path)
   "Returns the full path of FILE-RELATIVE-PATH, relative to file location where this function is called.
