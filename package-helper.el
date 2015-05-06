@@ -14,9 +14,7 @@
   (async-start
    `(lambda ()
       (setq package-archives
-            '(("gnu"         . "http://elpa.gnu.org/packages/")
-              ("org"         . "http://orgmode.org/elpa/")
-              ("melpa"       . "http://melpa.milkbox.net/packages/")))
+            ',package-archives)
       (require 'finder-inf nil t)
       ;; Initialize the package system if necessary.
       (package-initialize t)
