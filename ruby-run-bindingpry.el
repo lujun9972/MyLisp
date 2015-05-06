@@ -72,3 +72,5 @@
     (local-set-key (kbd "C-x C-b") 'pry-send-buffer)  
 	map)  
   "Basic mode map for `run-pry'")  
+
+(provide 'ruby-run-bindingpry)
