@@ -1,3 +1,23 @@
+(defun package-installable-p (package)
+  "检查package是否有安装源"
+  (require 'package)
+  (unless package--initialized
+	(package-initialize t))
+  (unless package-archive-contents
+	(package-refresh-contents))
+	(memq package (mapcar #'car package-archive-contents)))
+
+(defun package-loadable-p (package)
+  "判断`package'是否能被加载"
+  (require 'cl)
+  (let ((load-file (concat (format "%s" package) ".el")))
+	(cl-some (lambda (dir)
+			   (file-exists-p (expand-file-name load-file dir))) load-path)))
+(defun package-install-new (package)
+  "当不存在package时才安装package"
+  (when (and  (not (package-installed-p package))
+			  (package-installable-p package))
+	(package-install package)))
 (defun require-and-install (pkg &optional filename noerror)
   ""
   (unless (require pkg filename t)
@@ -66,25 +86,6 @@
 	 (package-initialize nil)
 	 (message "%s installed" ',package))))
 
-(defun package-installable-p (package)
-  "检查package是否有安装源"
-  (require 'package)
-  (unless package--initialized
-	(package-initialize t))
-  (unless package-archive-contents
-	(package-refresh-contents))
-	(memq package (mapcar #'car package-archive-contents)))
 
-(defun package-loadable-p (package)
-  "判断`package'是否能被加载"
-  (require 'cl)
-  (let ((load-file (concat (format "%s" package) ".el")))
-	(cl-some (lambda (dir)
-			   (file-exists-p (expand-file-name load-file dir))) load-path)))
-(defun package-install-new (package)
-  "当不存在package时才安装package"
-  (when (and  (not (package-installed-p package))
-			  (package-installable-p package))
-	(package-install package)))
 
 (provide 'package-helper)
