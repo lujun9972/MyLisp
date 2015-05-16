@@ -1,7 +1,7 @@
 #+TITLE: README
 #+AUTHOR: lujun9972
 #+OPTIONS: ^:{}
-* darksun-code-library
+* code-library
   这是一个简单的使用org-mode来收集代码片段的工具. 使用步骤为:
 
   * 设置`code-library-path'
@@ -52,7 +52,7 @@
 
   * 使用`M-x turn-off-auto-ftp'退出自动上传状态.
 
-* darksun-clean-buffer
+* clean-buffer
 
   Emacs用久了,就会有很多形形色色的buffer存在,这些buffer不仅耗费系统资源而且显得很凌乱,因此写了个东西自动关闭这些buffer
 
@@ -79,14 +79,14 @@
       (run-with-timer 0 5 #'kill-useless-buffers) ;每5秒清理一次buffer
 	#+END_SRC
 
-* darksun-monitor
+* monitor
 
   
   * 在使用前,请保证系统有plink或ssh
 
   * 加载monitor库:
 	 #+BEGIN_SRC emacs-lisp
-       (require 'darksun-monitor)
+       (require 'monitor)
 	 #+END_SRC
 
   * 创建一个process连接到要监控的远程机器上

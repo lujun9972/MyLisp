@@ -1,4 +1,4 @@
-(require 'darksun-file-helper)
+(require 'file-helper)
 (defun proc-info--typeof (obj)
   (cond ((and (stringp obj)
 			  (file-directory-p obj))
