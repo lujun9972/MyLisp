@@ -131,4 +131,5 @@
 方便查看/proc信息的小工具
 
 ** TODO 增加/proc信息的中文解释
-
+* zb-mode
+装逼mode:模拟http://hackertype.net/ 
