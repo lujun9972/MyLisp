@@ -28,4 +28,4 @@
   (interactive)
   (advice-remove 'self-insert-command #'zb-self-insert-command-advise))
 
-(require 'zb-mode)
+(provide 'zb-mode)
