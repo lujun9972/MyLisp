@@ -9,3 +9,5 @@
        `(let (,,@(loop for g in gensyms for n in names collect ``(,,g ,,n)))
 	  ,(let (,@(loop for n in names for g in gensyms collect `(,n ,g)))
 		,@body)))))
+
+(provide 'macro-helper)

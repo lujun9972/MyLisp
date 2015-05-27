@@ -1,6 +1,5 @@
-(defvar zb-content ""
+(defvar-local zb-content ""
   "zb时输入的文本")
-(make-variable-buffer-local 'zb-content)
 
 (defun zb-self-insert-command-advise(&optional N)
   ""
