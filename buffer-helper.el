@@ -31,4 +31,12 @@
 	  (buffer-substring-no-properties (region-beginning) (region-end))
 	(thing-at-point THING)))
 
+(defun buffer-point(buffer-or-name &optional default-point)
+  "获取指定buffer的光标所在位置
+
+若参数`buffer-or-name'没有对应buffer,则返回`default-point'"
+  (if (get-buffer buffer-or-name)
+	  (with-current-buffer buffer-or-name
+		(point))
+	default-point))
 (provide 'buffer-helper)
