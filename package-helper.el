@@ -13,11 +13,21 @@
   (let ((load-file (concat (format "%s" package) ".el")))
 	(cl-some (lambda (dir)
 			   (file-exists-p (expand-file-name load-file dir))) load-path)))
-(defun package-install-new (package)
-  "当不存在package时才安装package"
-  (when (and  (not (package-installed-p package))
-			  (package-installable-p package))
-	(package-install package)))
+
+(defun package-install-new (package &optional min-version no-refresh)
+  "当不存在package时才安装package
+
+Install given PACKAGE, optionally requiring MIN-VERSION.
+If NO-REFRESH is non-nil, the available package lists will not be
+re-downloaded in order to locate PACKAGE."
+  (if (package-installed-p package min-version)
+      t
+    (if (or (assoc package package-archive-contents) no-refresh)
+        (package-install package)
+      (progn
+        (package-refresh-contents)
+        (require-package package min-version t)))))
+
 (defun require-and-install (pkg &optional filename noerror)
   ""
   (unless (require pkg filename t)
@@ -87,5 +97,19 @@
 	 (message "%s installed" ',package))))
 
 
+(defun sanityinc/set-tabulated-list-column-width (col-name width)
+  "Set any column with name COL-NAME to the given WIDTH."
+  (cl-loop for column across tabulated-list-format
+           when (string= col-name (car column))
+           do (setf (elt column 1) width)))
+
+(defun sanityinc/maybe-widen-package-menu-columns ()
+  "Widen some columns of the package menu table to avoid truncation."
+  (when (boundp 'tabulated-list-format)
+    (sanityinc/set-tabulated-list-column-width "Version" 13)
+    (let ((longest-archive-name (apply 'max (mapcar 'length (mapcar 'car package-archives)))))
+      (sanityinc/set-tabulated-list-column-width "Archive" longest-archive-name))))
+
+(add-hook 'package-menu-mode-hook 'sanityinc/maybe-widen-package-menu-columns)
 
 (provide 'package-helper)
