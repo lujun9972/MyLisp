@@ -1,3 +1,21 @@
+(defun alistp(l)
+  "判断`l'是否为assoc-list"
+  (when (and (listp l)
+			 l)
+	(or (consp (car l))
+		(alistp (cdr l)))))
+(alistp '(1 . 2))
+
+(defun assoc-tree (key alist)
+  "嵌套查询alist"
+  (when (alistp alist)
+	(let ((res (assoc key alist)))
+	  (if res
+		  res
+		(cl-some (lambda (l)
+				   (assoc-tree key l))
+				 alist)))))
+
 (defvar find-tag-functions '(find-tag)
   "用来查找tag的函数列表")
 
@@ -7,21 +25,33 @@
 会使用`find-tag-functions'中第一个有效的函数来查询tag"
   (interactive)
   (let ((word (or word (current-word)))
+		(find-tag-function (find-if #'functionp find-tag-functions))
+		ientry
+		ipos)
+	(when (fboundp 'imenu--make-index-alist)
+		(setq ientry (assoc-tree word (imenu--make-index-alist))))
+	(when ientry
+	  (setq ipos (cdr ientry)))
+	(cond ((and (markerp ipos)
+			 (eq (marker-buffer ipos) (current-buffer)))
+		   (setq ipos (marker-position ipos)))
+		  ((overlayp ipos)
+		   (setq ipos (overlay-start ipos)))
+		  (t (setq ipos nil)))
+	(if (null ipos)
+		(funcall find-tag-function word)
+	  (goto-char ipos))))
+
+
+(defun find-current-tag-info(tag-name)
+  "查找tag所在的文件名和位置"
+  (let ((tag-file-name)
+		(tag-position)
 		(find-tag-function (find-if #'functionp find-tag-functions)))
-	(if (and imenu--index-alist (imenu--in-alist word imenu--index-alist))
-		(imenu--menubar-select (imenu--in-alist word imenu--index-alist))
-	  (funcall find-tag-function word))))
-
-
- (defun find-current-tag-info(tag-name)
-   "查找tag所在的文件名和位置"
-   (let ((tag-file-name)
-		 (tag-position)
-		 (find-tag-function (find-if #'functionp find-tag-functions)))
-	  (save-excursion
-		(funcall find-tag-function tag-name)
-		(setf tag-file-name (buffer-file-name))
-		(setf tag-position (point)))))
+	(save-excursion
+	  (funcall find-tag-function tag-name)
+	  (setf tag-file-name (buffer-file-name))
+	  (setf tag-position (point)))))
 
 ;; 切换h/cpp文件
 (defun switch-extension(extension)
