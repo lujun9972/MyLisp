@@ -1,3 +1,5 @@
+(require 'cl)
+(require 'eshell)
 (defvar eshell-auto-executable-commands '(ei )
   "允许自动执行的command")
 
@@ -23,3 +25,5 @@
   "关闭自动执行command"
   (interactive)
   (remove-hook 'post-self-insert-hook #'eshell-auto-execute-alias t))
+
+(provide 'eshell-auto-execute-commands)
