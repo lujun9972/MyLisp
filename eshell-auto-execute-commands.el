@@ -18,7 +18,7 @@
 开启后,只要输入的命令在变量`eshell-auto-executable-commands'中,则会自动执行,不需要按回车"
   (interactive)
   (unless (eq major-mode 'eshell-mode)
-	(error "只能在eshell-mode下开启自动执行alias"))
+	(error "只能在eshell-mode下开启自动执行command"))
   (add-hook 'post-self-insert-hook #'eshell-auto-execute-commands t t))
 
 (defun turn-off-eshell-auto-execute-commands ()
