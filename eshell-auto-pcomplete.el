@@ -9,10 +9,12 @@
 	(delete-char (- (length pcomplete-stub)))
 	(insert completion-result)))
 
-(defvar pcomplete-fn 'ido-pcomplete
+(when eshell-mode-map
+  (define-key eshell-mode-map (kbd "<tab>") 'ido-pcomplete))
+
+(defvar pcomplete-fn 'eshell-pcomplete
   "用于补全的方法
-目前可以选择'eshell-pcomplete或'ido-pcomplete
-默认为'ido-pcomplete,但推荐'eshell-pcomplete")
+目前可以选择'eshell-pcomplete或'ido-pcomplete.推荐'eshell-pcomplete")
 
 (defun turn-on-eshell-auto-pcomplete ()
   "开启自动执行pcomplete补全
