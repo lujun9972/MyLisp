@@ -9,7 +9,7 @@
 			 (cl-member-if (lambda (x)
 							 "判断已输入的命令是否在`eshell-auto-executable-commands'中"
 							 (string= (eshell-get-old-input) (format "%s" x)))
-						   eshell-auto-executable-alias))
+						   eshell-auto-executable-commands))
 	(eshell-send-input)))
 
 (defun turn-on-eshell-auto-execute-commands ()
@@ -19,11 +19,11 @@
   (interactive)
   (unless (eq major-mode 'eshell-mode)
 	(error "只能在eshell-mode下开启自动执行alias"))
-  (add-hook 'post-self-insert-hook #'eshell-auto-execute-alias t t))
+  (add-hook 'post-self-insert-hook #'eshell-auto-execute-commands t t))
 
 (defun turn-off-eshell-auto-execute-commands ()
   "关闭自动执行command"
   (interactive)
-  (remove-hook 'post-self-insert-hook #'eshell-auto-execute-alias t))
+  (remove-hook 'post-self-insert-hook #'eshell-auto-execute-commands t))
 
 (provide 'eshell-auto-execute-commands)
