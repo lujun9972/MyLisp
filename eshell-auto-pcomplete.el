@@ -3,9 +3,16 @@
 (defun ido-pcomplete ()
   "使用ido作为eshell的pcomplete方法"
   (interactive)
-  (let* (pcomplete-stub
+  (let* (completion-result
 		 (completions (pcomplete-completions))
-		 (completion-result (ido-completing-read ": " (all-completions pcomplete-stub completions) nil nil pcomplete-stub)))
+		 (candidates (all-completions pcomplete-stub completions))
+		 (pcomplete-stub (replace-regexp-in-string ".*[\/]" "" pcomplete-stub))
+		 )
+	(cond ((null candidates)
+		   (error "没有匹配项"))
+		  ((= 1 (length candidates))
+		   (setq completion-result (car candidates)))
+		  (t (setq completion-result (ido-completing-read ": " candidates nil nil pcomplete-stub))))
 	(delete-char (- (length pcomplete-stub)))
 	(insert completion-result)))
 
