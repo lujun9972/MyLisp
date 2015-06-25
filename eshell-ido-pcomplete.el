@@ -76,7 +76,7 @@
 			 (setq completion-result (car candidates)))
 			(t (setq completion-result (ido-completing-read ": " candidates nil nil pcomplete-stub))))
 	  (delete-char (- (length pcomplete-stub)))
-	  (insert completion-result))))
+	  (insert (eshell-quote-argument completion-result)))))
 
 (when eshell-mode-map
   (define-key eshell-mode-map (kbd "<tab>") 'eshell-ido-pcomplete))
