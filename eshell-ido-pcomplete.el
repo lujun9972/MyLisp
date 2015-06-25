@@ -16,6 +16,11 @@
 			(buffer-substring-no-properties (+ 1 delim-point) cur-point)
 		  nil)))))
 
+(defun eshell-ido-pcomplete--special-form-or-function-p (object)
+  "判断object是function或special-form"
+  (or (functionp object)
+	  (special-form-p object)))
+
 (defun eshell-ido-pcomplete--incomplete-input-lisp-symbol-p()
   "判断待补全的输入是否为symbol,若为symbol,则返回待补全的输入,否则返回nil"
   (when (eshell-ido-pcomplete--input-lisp-p)
@@ -38,13 +43,22 @@
 
 (defun eshell-ido-pcomplete--pcomplete-completions()
   "用于eshell-ido-pcomplete中生产补全内容的函数,会设置变量`pcomplete-stub'为待补全的内容,并返回补全的后选项"
-  (cond ((setq pcomplete-stub (eshell-ido-pcomplete--incomplete-input-lisp-function-p))
-		 (remove-if-not #'functionp obarray))
-		((setq pcomplete-stub (eshell-ido-pcomplete--incomplete-input-lisp-variable-p))
-		 (remove-if #'functionp obarray))
-		((setq pcomplete-stub (eshell-ido-pcomplete--incomplete-input-lisp-symbol-p))
-		 obarray)
-		(t (pcomplete-completions))))
+  (let (completions)
+	(cond ((setq pcomplete-stub (eshell-ido-pcomplete--incomplete-input-lisp-function-p))
+		   (mapatoms (lambda (x)
+					   (when (eshell-ido-pcomplete--special-form-or-function-p x)
+						 (push x completions))))
+		   completions)
+		  ((setq pcomplete-stub (eshell-ido-pcomplete--incomplete-input-lisp-variable-p))
+		   (mapatoms (lambda (x)
+					   (unless (eshell-ido-pcomplete--special-form-or-function-p x)
+						 (push x completions))))
+		   completions)
+		  ((setq pcomplete-stub (eshell-ido-pcomplete--incomplete-input-lisp-symbol-p))
+		   (mapatoms (lambda (x)
+					   (push x completions)))
+		   completions)
+		  (t (pcomplete-completions)))))
 
 (defun eshell-ido-pcomplete ()
   "使用ido作为eshell的pcomplete方法"
