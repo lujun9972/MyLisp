@@ -11,8 +11,18 @@
   (when (eshell-ido-pcomplete--input-lisp-p)
 	(save-excursion
 	  (let ((cur-point (point))
-			(delim-point (search-backward-regexp "[ ()]")))
+			(delim-point (search-backward-regexp "[ ()']")))
 		(if (= ?\( (char-after delim-point))
+			(buffer-substring-no-properties (+ 1 delim-point) cur-point)
+		  nil)))))
+
+(defun eshell-ido-pcomplete--incomplete-input-lisp-symbol-p()
+  "判断待补全的输入是否为symbol,若为symbol,则返回待补全的输入,否则返回nil"
+  (when (eshell-ido-pcomplete--input-lisp-p)
+	(save-excursion
+	  (let ((cur-point (point))
+			(delim-point (search-backward-regexp "[ ()']")))
+		(if (= ?\' (char-after delim-point))
 			(buffer-substring-no-properties (+ 1 delim-point) cur-point)
 		  nil)))))
 
@@ -21,10 +31,10 @@
   (when (eshell-ido-pcomplete--input-lisp-p)
 	(save-excursion
 	  (let ((cur-point (point))
-			(delim-point (search-backward-regexp "[ ()]")))
-		(if (= ?\( (char-after delim-point))
-			nil
-			(buffer-substring-no-properties (+ 1 delim-point) cur-point))))))
+			(delim-point (search-backward-regexp "[ ()']")))
+		(if (find (char-after delim-point) " )")
+			(buffer-substring-no-properties (+ 1 delim-point) cur-point)
+		  nil)))))
 
 (defun eshell-ido-pcomplete--pcomplete-completions()
   "用于eshell-ido-pcomplete中生产补全内容的函数,会设置变量`pcomplete-stub'为待补全的内容,并返回补全的后选项"
@@ -32,6 +42,8 @@
 		 (remove-if-not #'functionp obarray))
 		((setq pcomplete-stub (eshell-ido-pcomplete--incomplete-input-lisp-variable-p))
 		 (remove-if #'functionp obarray))
+		((setq pcomplete-stub (eshell-ido-pcomplete--incomplete-input-lisp-symbol-p))
+		 obarray)
 		(t (pcomplete-completions))))
 
 (defun eshell-ido-pcomplete ()
