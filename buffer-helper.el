@@ -39,4 +39,13 @@
 	  (with-current-buffer buffer-or-name
 		(point))
 	default-point))
+
+(defun select-or-create-buffer-window (buffer-or-name)
+  "若frame中有显示`buffer-or-name'的window,则选中该window,否则创建新window显示该buffer"
+  (let ((buf (get-buffer-create buffer-or-name)))
+	(unless (get-buffer-window buf)
+	  (split-window)
+	  (switch-to-buffer buf))
+	(select-window (get-buffer-window buf))))
+
 (provide 'buffer-helper)
