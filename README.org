@@ -133,6 +133,9 @@
 ** TODO 增加/proc信息的中文解释
 * zb-mode
 装逼mode:模拟http://hackertype.net/ 
+
+1. 执行`turn-on-zb-mode'后进入装逼模式,在模式下可以随意按键,输出的内容是预定义好的文件内容
+2. 执行`turn-off-zb-mode'后退出装逼模式
 * eshell-ido-pcomplete
 在eshell中使用ido进行补全,目前支持命令,文件路径,lisp函数和lisp变量的补全
 
