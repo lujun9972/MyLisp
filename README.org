@@ -133,3 +133,31 @@
 ** TODO 增加/proc信息的中文解释
 * zb-mode
 装逼mode:模拟http://hackertype.net/ 
+* eshell-ido-pcomplete
+在eshell中使用ido进行补全,目前支持命令,文件路径,lisp函数和lisp变量的补全
+
+使用方法为
+
+1. 将eshell-ido-pcomplete.el放到`load-path'中
+2. 在eshell buffer中执行`(require 'shell-ido-pcomplete)',则tab键被绑定到eshell-ido-pcomplete
+* eshell-auto-execute-commands
+允许eshell中不按回车,自动执行命令
+
+使用方法为
+
+1. 将eshell-auto-execute-commands.el放到`load-path'中
+2. 配置变量`eshell-auto-executable-commands',改变量为一个存储自动执行命令的list. 
+
+   例如要在eshell下输入iff就立即执行ido-find-file命令,只需要,先在eshell中执行
+   #+BEGIN_SRC sh
+   alias iff ido-find-file
+   #+END_SRC
+   然后在emacs配置文件中加入
+   #+BEGIN_SRC emacs-lisp
+   (add-to-list 'eshell-auto-executable-commands 'iff)
+   #+END_SRC
+3. 执行命令`turn-on-eshell-auto-execute-commands'开启自动执行command模式
+
+   此时,在eshell中输入iff则会自动调用`ido-find-file'函数
+
+4. 执行命令`turn-off-eshell-auto-execute-commands'关闭自动执行command模式
