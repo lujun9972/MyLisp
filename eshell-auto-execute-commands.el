@@ -1,6 +1,6 @@
 (require 'cl)
 (require 'eshell)
-(defvar eshell-auto-executable-commands '(ei )
+(defvar eshell-auto-executable-commands '( )
   "允许自动执行的command")
 
 (defun eshell-auto-execute-commands ()
