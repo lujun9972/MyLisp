@@ -1,2 +1,3 @@
 (require 'room-maker)
-(room-init "room-description.ini" "room-map.ini")
+(map-init "room-description.el" "room-map.ini")
+(move right)

@@ -75,7 +75,7 @@
 (defvar currect-room nil				;
   "当前所处的room对象")
 
-(defun room-init(room-config-file room-map-config-file)
+(defun map-init(room-config-file room-map-config-file)
   "初始化函数,生成room对象,组装map"
   (setq rooms-alist (build-rooms room-config-file))
   (setq room-map (build-room-map room-map-config-file))
