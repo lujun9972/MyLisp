@@ -12,6 +12,7 @@
   ((symbol :initform (intern (format "room-%s" (length rooms-alist))) :initarg :symbol :accessor room-symbol :documentation "ROOM标志")
    (description :initarg :description :accessor room-description :documentation "ROOM描述")
    (inventory :initarg :inventory :accessor room-inventory :documentation "ROOM中所有的物品")
+   (equipment :initarg :equipment :accessor room-equipment :documentation "ROOM中所有的装备")
    (enemy :initarg :enemy :accessor room-enemy :documentation "ROOM中所拥有的敌人")))
 
 (defmethod describe ((room Room))
