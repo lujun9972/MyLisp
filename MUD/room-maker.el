@@ -1,3 +1,5 @@
+(defvar display-fn #'message
+  "显示信息的函数")
 (defvar rooms-alist nil
   "symbol与room对象的映射")
 
@@ -14,9 +16,8 @@
 
 (defmethod describe ((room Room))
   "输出room的描述"
-  (message "这里是%s\n%s\n物品列表:%s\n怪物列表:%s" (room-symbol room) (room-description room) (room-inventory room) (room-enemy room))
-  (let ((beyond-rooms (beyond-rooms (room-symbol room) room-map)))
-	(message "附近的rooms: up:%s right:%s down:%s left:%s" (nth up beyond-rooms) (nth right beyond-rooms) (nth down beyond-rooms) (nth left beyond-rooms))))
+  (cl-multiple-value-bind (up-room right-room down-room left-room)  (beyond-rooms (room-symbol room) room-map)
+	(message "这里是%s\n%s\n物品列表:%s\n怪物列表:%s\n附近的rooms: up:%s right:%s down:%s left:%s" (room-symbol room) (room-description room) (room-inventory room) (room-enemy room) up-room right-room down-room left-room)))
 
 ;; 创建room列表的方法
 (defun build-room (text)
@@ -94,8 +95,8 @@
 	(if new-room-symbol
 		(progn
 		  (setq currect-room (get-room-by-symbol new-room-symbol))
-		  (describe currect-room))
-	  (message "那里没有路"))))
+		  (funcall display-fn (describe currect-room)))
+	  (funcall display-fn "那里没有路"))))
 
 (provide 'room-maker)
 
