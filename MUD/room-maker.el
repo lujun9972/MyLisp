@@ -9,7 +9,7 @@
    (enemy :initarg :enemy :accessor room-enemy :documentation "ROOM中所拥有的敌人")))
 
 (defun build-room (text)
-  "根据`text'创建room"
+  "根据`text'创建room,并将room存入`rooms-alist'中"
   (cl-multiple-value-bind (symbol description) (split-string text "=")
 	(setq symbol (intern symbol))
 	(push (cons symbol (make-instance Room :symbol symbol :description description)) rooms-alist)))
