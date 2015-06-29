@@ -17,7 +17,7 @@
 (defmethod describe ((room Room))
   "输出room的描述"
   (cl-multiple-value-bind (up-room right-room down-room left-room)  (beyond-rooms (room-symbol room) room-map)
-	(message "这里是%s\n%s\n物品列表:%s\n怪物列表:%s\n附近的rooms: up:%s right:%s down:%s left:%s" (room-symbol room) (room-description room) (room-inventory room) (room-enemy room) up-room right-room down-room left-room)))
+	(format "这里是%s\n%s\n物品列表:%s\n怪物列表:%s\n附近的rooms: up:%s right:%s down:%s left:%s" (room-symbol room) (room-description room) (room-inventory room) (room-enemy room) up-room right-room down-room left-room)))
 
 ;; 创建room列表的方法
 (defun build-room (text)
