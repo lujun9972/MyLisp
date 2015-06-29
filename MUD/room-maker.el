@@ -20,19 +20,16 @@
 	(format "这里是%s\n%s\n物品列表:%s\n怪物列表:%s\n附近的rooms: up:%s right:%s down:%s left:%s" (room-symbol room) (room-description room) (room-inventory room) (room-enemy room) up-room right-room down-room left-room)))
 
 ;; 创建room列表的方法
-(defun build-room (text)
+(defun build-room (room-entity)
   "根据`text'创建room,并将room存入`rooms-alist'中"
-  (cl-multiple-value-bind (symbol description) (split-string text "=")
+  (cl-multiple-value-bind (symbol description) room-entity
 	(setq symbol (intern symbol))
 	(cons symbol (make-instance Room :symbol symbol :description description))))
 
 (defun build-rooms(room-config-file)
   "根据`room-config-file'中的配置信息创建各个room"
-  (let ((file-lines (remove-if (lambda (line)
-								"是否以#开头的行"
-								(string-match-p "^[[:blank:]]*#" line))
-							   (split-string (file-content room-config-file) "[\r\n]"))))
-	(mapcar #'build-room file-lines)))
+  (let ((room-entities (read-from-whole-string (file-content room-config-file))))
+	(mapcar #'build-room room-entities)))
 
 ;; 将各room组装成地图的方法
 (defvar room-map nil
