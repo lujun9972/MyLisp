@@ -11,27 +11,39 @@
 (defclass Room nil
   ((symbol :initform (intern (format "room-%s" (length rooms-alist))) :initarg :symbol :accessor room-symbol :documentation "ROOM标志")
    (description :initarg :description :accessor room-description :documentation "ROOM描述")
-   (inventory :initarg :inventory :accessor room-inventory :documentation "ROOM中所有的物品")
-   (equipment :initarg :equipment :accessor room-equipment :documentation "ROOM中所有的装备")
-   (enemy :initarg :enemy :accessor room-enemy :documentation "ROOM中所拥有的敌人")))
+   (inventory :initform nil :initarg :inventory :accessor room-inventory :documentation "ROOM中所有的物品")
+   (creature :initform nil :initarg :creature :accessor room-creature :documentation "ROOM中所拥有的生物")
+   (in-trigger :initform nil :initarg :in-trigger :accessor room-in-trigger :documentation "进入该ROOM后触发的事件")
+   (out-trigger :initform nil :initarg :out-trigger :accessor room-out-trigger :documentation "离开该ROOM后触发的事件")
+   ))
 
 (defmethod describe ((room Room))
   "输出room的描述"
   (cl-multiple-value-bind (up-room right-room down-room left-room)  (beyond-rooms (room-symbol room) room-map)
-	(format "这里是%s\n%s\n物品列表:%s\n怪物列表:%s\n附近的rooms: up:%s right:%s down:%s left:%s" (room-symbol room) (room-description room) (room-inventory room) (room-enemy room) up-room right-room down-room left-room)))
+	(format "这里是%s\n%s\n物品列表:%s\n生物列表:%s\n附近的rooms: up:%s right:%s down:%s left:%s" (room-symbol room) (room-description room) (room-inventory room) (room-creature room) up-room right-room down-room left-room)))
 
 ;; 创建room列表的方法
 (defun build-room (room-entity)
   "根据`text'创建room,并将room存入`rooms-alist'中"
-  (cl-multiple-value-bind (symbol description) room-entity
-	(setq symbol (intern symbol))
-	(cons symbol (make-instance Room :symbol symbol :description description))))
+  (cl-multiple-value-bind (symbol description inventory equipment creature) room-entity
+	(cons symbol (make-instance Room :symbol symbol :description description :inventory inventory :equipment equipment :creature creature))))
 
 (defun build-rooms(room-config-file)
   "根据`room-config-file'中的配置信息创建各个room"
   (let ((room-entities (read-from-whole-string (file-content room-config-file))))
 	(mapcar #'build-room room-entities)))
 
+(defun remove-inventory-from-room (room inventory)
+  ""
+  (setf (room-inventory room) (remove inventory (room-inventory room))))
+
+(defun add-inventory-to-room (room inventory)
+  ""
+  (push (room-inventory room) inventory))
+
+(defun kill-creature-from-room (room inventory)
+  ""
+  (setf (room-creature room) (remove inventory (room-creature room))))
 ;; 将各room组装成地图的方法
 (defvar room-map nil
   "room的地图")
@@ -82,20 +94,5 @@
   (setq room-map (build-room-map room-map-config-file))
   (setq currect-room (get-room-by-symbol (caar rooms-alist))))
 
-;; 移动到各room的命令
-(defconst up 0)
-(defconst right 1)
-(defconst down 2)
-(defconst left 3)
-
-(defun move(directory)
-  (let ((new-room-symbol (nth directory (beyond-rooms (room-symbol currect-room) room-map))))
-	(if new-room-symbol
-		(progn
-		  (setq currect-room (get-room-by-symbol new-room-symbol))
-		  (funcall display-fn (describe currect-room)))
-	  (funcall display-fn "那里没有路"))))
-
 (provide 'room-maker)
 
-(setq room0 (make-instance Room :description "miaos"))
