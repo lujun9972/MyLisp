@@ -39,11 +39,23 @@
 
 (defun add-inventory-to-room (room inventory)
   ""
-  (push (room-inventory room) inventory))
+  (push inventory (room-inventory room)))
 
-(defun kill-creature-from-room (room inventory)
+(defun remove-creature-from-room (room inventory)
   ""
   (setf (room-creature room) (remove inventory (room-creature room))))
+
+(defun add-creature-to-room (room creature)
+  ""
+  (push creature (room-creature room)))
+
+(defun inventory-exist-in-room-p (room inventory)
+  ""
+  (member inventory (room-inventory room)))
+
+(defun creature-exist-in-room-p (room creature)
+  ""
+  (member creature (room-creature room)))
 ;; 将各room组装成地图的方法
 (defvar room-map nil
   "room的地图")

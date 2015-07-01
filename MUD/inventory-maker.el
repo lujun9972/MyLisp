@@ -3,31 +3,37 @@
 (defvar inventorys-alist nil
   "symbol与inventory对象的映射")
 
-(defun get-inventory-by-symbol (symbol)
+(defun get-inventory-by-symbol (symbol &optional noexception)
   "根据symbol获取inventory对象"
-  (cdr (assoc symbol inventorys-alist)))
+  (let (object)
+	(setq object (cdr (assoc symbol inventorys-alist)))
+	(when (and (null object)
+			   (null noexception))
+	  (throw 'exception (format "没有定义该物品[%s]" symbol)))
+	object))
 
 ;; 定义Inventory类
 (defclass Inventory nil
   ((symbol :initform (intern (format "inventory-%s" (length inventorys-alist))) :initarg :symbol :accessor inventory-symbol :documentation "INVENTORY标志")
    (description :initarg :description :accessor inventory-description :documentation "INVENTORY描述")
    (type :initarg :type :accessor inventory-type :documentation "INVENTORY的类型")
-   (effect :initarg :effect :accessor inventory-effect :documentation "INVENTORY的使用效果")
+   (effects :initarg :effects :accessor inventory-effects :documentation "INVENTORY的使用效果")
    (watch-trigger :initform nil :initarg :watch-trigger :accessor inventory-watch-trigger :documentation "查看该INVENTORY时触发的事件")
    (get-trigger :initform nil :initarg :get-trigger :accessor inventory-get-trigger :documentation "获取该INVENTORY时触发的事件")
+   (drop-trigger :initform nil :initarg :drop-trigger :accessor inventory-drop-trigger :documentation "丢弃该INVENTORY时触发的事件")
    (use-trigger :initform nil :initarg :use-trigger :accessor inventory-use-trigger :documentation "使用该INVENTORY时触发的事件")
    (wear-trigger :initform nil :initarg :wear-trigger :accessor inventory-wear-trigger :documentation "装备该INVENTORY时触发的事件")
    ))
 
 (defmethod describe ((inventory Inventory))
   "输出inventory的描述"
-	(format "这个是%s\n%s\n类型:%s\n使用效果:%s" (inventory-symbol inventory) (inventory-description inventory) (inventory-type inventory) (inventory-effect inventory)))
+	(format "这个是%s\n%s\n类型:%s\n使用效果:%s" (inventory-symbol inventory) (inventory-description inventory) (inventory-type inventory) (inventory-effects inventory)))
 
 ;; 创建inventory列表的方法
 (defun build-inventory (inventory-entity)
   "根据`text'创建inventory"
-  (cl-multiple-value-bind (symbol description type effect) inventory-entity
-	(cons symbol (make-instance Inventory :symbol symbol :description description :type type :effect effect))))
+  (cl-multiple-value-bind (symbol description type effects) inventory-entity
+	(cons symbol (make-instance Inventory :symbol symbol :description description :type type :effects effects))))
 
 (defun build-inventorys(inventory-config-file)
   "根据`inventory-config-file'中的配置信息创建各个inventory"

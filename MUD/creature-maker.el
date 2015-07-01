@@ -51,5 +51,34 @@
   ""
   (push inventory (creature-inventory creature)))
 
+(defun inventory-exist-in-creature-p (creature inventory)
+  ""
+  (member inventory (creature-inventory creature)))
+
+(defun remove-equipment-from-creature (creature equipment)
+  ""
+  (setf (creature-equipment equipment) (remove equipment (creature-equipment creature))))
+
+(defun add-equipment-to-creature (creature equipment)
+  ""
+  (push equipment (creature-equipment creature)))
+
+(defun equipment-exist-in-creature-p (creature equipment)
+  ""
+  (member equipment (creature-equipment creature)))
+
+(defun take-effect-to-creature (creature effect)
+  ""
+  (let ((attr-type (car effect))
+		(value (cdr effect)))
+	(if (assoc attr-type (creature-attr creature))
+		(incf (cdr (assoc attr-type (creature-attr creature))) value)
+	  (push effect (creature-attr creature)))))
+
+(defun take-effects-to-creature(creature effects)
+  ""
+  (dolist (effect effects)
+	(take-effect-to-creature creature effect)))
+
 (provide 'creature-maker)
 
