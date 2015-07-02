@@ -14,20 +14,20 @@
 
 ;; 定义Inventory类
 (defclass Inventory nil
-  ((symbol :initform (intern (format "inventory-%s" (length inventorys-alist))) :initarg :symbol :accessor inventory-symbol :documentation "INVENTORY标志")
-   (description :initarg :description :accessor inventory-description :documentation "INVENTORY描述")
-   (type :initarg :type :accessor inventory-type :documentation "INVENTORY的类型")
-   (effects :initarg :effects :accessor inventory-effects :documentation "INVENTORY的使用效果")
-   (watch-trigger :initform nil :initarg :watch-trigger :accessor inventory-watch-trigger :documentation "查看该INVENTORY时触发的事件")
-   (get-trigger :initform nil :initarg :get-trigger :accessor inventory-get-trigger :documentation "获取该INVENTORY时触发的事件")
-   (drop-trigger :initform nil :initarg :drop-trigger :accessor inventory-drop-trigger :documentation "丢弃该INVENTORY时触发的事件")
-   (use-trigger :initform nil :initarg :use-trigger :accessor inventory-use-trigger :documentation "使用该INVENTORY时触发的事件")
-   (wear-trigger :initform nil :initarg :wear-trigger :accessor inventory-wear-trigger :documentation "装备该INVENTORY时触发的事件")
+  ((symbol :initform (intern (format "inventory-%s" (length inventorys-alist))) :initarg :symbol :accessor member-symbol :documentation "INVENTORY标志")
+   (description :initarg :description :accessor member-description :documentation "INVENTORY描述")
+   (type :initarg :type :accessor member-type :documentation "INVENTORY的类型")
+   (effects :initarg :effects :accessor member-effects :documentation "INVENTORY的使用效果")
+   (watch-trigger :initform nil :initarg :watch-trigger :accessor member-watch-trigger :documentation "查看该INVENTORY时触发的事件")
+   (get-trigger :initform nil :initarg :get-trigger :accessor member-get-trigger :documentation "获取该INVENTORY时触发的事件")
+   (drop-trigger :initform nil :initarg :drop-trigger :accessor member-drop-trigger :documentation "丢弃该INVENTORY时触发的事件")
+   (use-trigger :initform nil :initarg :use-trigger :accessor member-use-trigger :documentation "使用该INVENTORY时触发的事件")
+   (wear-trigger :initform nil :initarg :wear-trigger :accessor member-wear-trigger :documentation "装备该INVENTORY时触发的事件")
    ))
 
 (defmethod describe ((inventory Inventory))
   "输出inventory的描述"
-	(format "这个是%s\n%s\n类型:%s\n使用效果:%s" (inventory-symbol inventory) (inventory-description inventory) (inventory-type inventory) (inventory-effects inventory)))
+	(format "这个是%s\n%s\n类型:%s\n使用效果:%s" (member-symbol inventory) (member-description inventory) (member-type inventory) (member-effects inventory)))
 
 ;; 创建inventory列表的方法
 (defun build-inventory (inventory-entity)
@@ -48,7 +48,7 @@
   "`inventory'是否能被装备"
   (when (symbolp inventory)
 	(setq inventory (get-inventory-by-symbol inventory)))
-  (let ((inventory-type (inventory-type inventory)))
+  (let ((inventory-type (member-type inventory)))
 	(or (eq inventory-type type)
 		(member type inventory-type))))
 

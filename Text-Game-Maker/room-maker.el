@@ -9,18 +9,18 @@
 
 ;; 定义Room类
 (defclass Room nil
-  ((symbol :initform (intern (format "room-%s" (length rooms-alist))) :initarg :symbol :accessor room-symbol :documentation "ROOM标志")
-   (description :initarg :description :accessor room-description :documentation "ROOM描述")
-   (inventory :initform nil :initarg :inventory :accessor room-inventory :documentation "ROOM中所有的物品")
-   (creature :initform nil :initarg :creature :accessor room-creature :documentation "ROOM中所拥有的生物")
-   (in-trigger :initform nil :initarg :in-trigger :accessor room-in-trigger :documentation "进入该ROOM后触发的事件")
-   (out-trigger :initform nil :initarg :out-trigger :accessor room-out-trigger :documentation "离开该ROOM后触发的事件")
+  ((symbol :initform (intern (format "room-%s" (length rooms-alist))) :initarg :symbol :accessor member-symbol :documentation "ROOM标志")
+   (description :initarg :description :accessor member-description :documentation "ROOM描述")
+   (inventory :initform nil :initarg :inventory :accessor member-inventory :documentation "ROOM中所有的物品")
+   (creature :initform nil :initarg :creature :accessor member-creature :documentation "ROOM中所拥有的生物")
+   (in-trigger :initform nil :initarg :in-trigger :accessor member-in-trigger :documentation "进入该ROOM后触发的事件")
+   (out-trigger :initform nil :initarg :out-trigger :accessor member-out-trigger :documentation "离开该ROOM后触发的事件")
    ))
 
 (defmethod describe ((room Room))
   "输出room的描述"
-  (cl-multiple-value-bind (up-room right-room down-room left-room)  (beyond-rooms (room-symbol room) room-map)
-	(format "这里是%s\n%s\n物品列表:%s\n生物列表:%s\n附近的rooms: up:%s right:%s down:%s left:%s" (room-symbol room) (room-description room) (room-inventory room) (room-creature room) up-room right-room down-room left-room)))
+  (cl-multiple-value-bind (up-room right-room down-room left-room)  (beyond-rooms (member-symbol room) room-map)
+	(format "这里是%s\n%s\n物品列表:%s\n生物列表:%s\n附近的rooms: up:%s right:%s down:%s left:%s" (member-symbol room) (member-description room) (member-inventory room) (member-creature room) up-room right-room down-room left-room)))
 
 ;; 创建room列表的方法
 (defun build-room (room-entity)
@@ -35,27 +35,27 @@
 
 (defun remove-inventory-from-room (room inventory)
   ""
-  (setf (room-inventory room) (remove inventory (room-inventory room))))
+  (setf (member-inventory room) (remove inventory (member-inventory room))))
 
 (defun add-inventory-to-room (room inventory)
   ""
-  (push inventory (room-inventory room)))
+  (push inventory (member-inventory room)))
 
 (defun remove-creature-from-room (room inventory)
   ""
-  (setf (room-creature room) (remove inventory (room-creature room))))
+  (setf (member-creature room) (remove inventory (member-creature room))))
 
 (defun add-creature-to-room (room creature)
   ""
-  (push creature (room-creature room)))
+  (push creature (member-creature room)))
 
 (defun inventory-exist-in-room-p (room inventory)
   ""
-  (member inventory (room-inventory room)))
+  (member inventory (member-inventory room)))
 
 (defun creature-exist-in-room-p (room creature)
   ""
-  (member creature (room-creature room)))
+  (member creature (member-creature room)))
 ;; 将各room组装成地图的方法
 (defvar room-map nil
   "room的地图")

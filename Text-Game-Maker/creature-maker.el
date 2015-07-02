@@ -9,18 +9,18 @@
 
 ;; 定义Creature类
 (defclass Creature nil
-  ((symbol :initform (intern (format "creature-%s" (length creatures-alist))) :initarg :symbol :accessor creature-symbol :documentation "CREATURE标志")
-   (description :initarg :description :accessor creature-description :documentation "CREATURE描述")
-   (occupation :initform 'human :initarg :occupation :accessor creature-occupation :documentation "CREATURE的职业")
-   (attr :initform nil :initarg :attr :accessor creature-attr :documentation "CREATURE的属性")
-   (inventory :initform nil :initarg :inventory :accessor creature-inventory :documentation "CREATURE所只有的物品")
-   (equipment :initform nil :initarg :equipment :accessor creature-equipment :documentation "CREATURE装备的装备")
-   (watch-trigger :initform nil :initarg :watch-trigger :accessor creature-watch-trigger :documentation "查看该CREATURE后触发的事件")
+  ((symbol :initform (intern (format "creature-%s" (length creatures-alist))) :initarg :symbol :accessor member-symbol :documentation "CREATURE标志")
+   (description :initarg :description :accessor member-description :documentation "CREATURE描述")
+   (occupation :initform 'human :initarg :occupation :accessor member-occupation :documentation "CREATURE的职业")
+   (attr :initform nil :initarg :attr :accessor member-attr :documentation "CREATURE的属性")
+   (inventory :initform nil :initarg :inventory :accessor member-inventory :documentation "CREATURE所只有的物品")
+   (equipment :initform nil :initarg :equipment :accessor member-equipment :documentation "CREATURE装备的装备")
+   (watch-trigger :initform nil :initarg :watch-trigger :accessor member-watch-trigger :documentation "查看该CREATURE后触发的事件")
    ))
 
 (defmethod describe ((creature Creature))
   "输出creature的描述"
-	(format "这个是%s\n%s\n属性值:%s\n拥有物品:%s\n装备了:%s" (creature-symbol creature) (creature-description creature) (creature-attr creature) (creature-inventory creature) (creature-equipment creature)))
+	(format "这个是%s\n%s\n属性值:%s\n拥有物品:%s\n装备了:%s" (member-symbol creature) (member-description creature) (member-attr creature) (member-inventory creature) (member-equipment creature)))
 
 ;; 创建creature列表的方法
 (defun build-creature (creature-entity)
@@ -45,36 +45,35 @@
 
 (defun remove-inventory-from-creature (creature inventory)
   ""
-  (setf (creature-inventory creature) (remove inventory (creature-inventory creature))))
+  (setf (member-inventory creature) (remove inventory (member-inventory creature))))
 
 (defun add-inventory-to-creature (creature inventory)
   ""
-  (push inventory (creature-inventory creature)))
+  (push inventory (member-inventory creature)))
 
 (defun inventory-exist-in-creature-p (creature inventory)
   ""
-  (member inventory (creature-inventory creature)))
+  (member inventory (member-inventory creature)))
 
 (defun remove-equipment-from-creature (creature equipment)
   ""
-  (setf (creature-equipment equipment) (remove equipment (creature-equipment creature))))
+  (setf (member-equipment equipment) (remove equipment (member-equipment creature))))
 
 (defun add-equipment-to-creature (creature equipment)
   ""
-  (push equipment (creature-equipment creature)))
+  (push equipment (member-equipment creature)))
 
 (defun equipment-exist-in-creature-p (creature equipment)
   ""
-  (member equipment (creature-equipment creature)))
+  (member equipment (member-equipment creature)))
 
 (defun take-effect-to-creature (creature effect)
   ""
   (let* ((attr-type (car effect))
 		(value (cdr effect)))
-	(if (assoc attr-type (creature-attr creature))
-		(incf (cdr (assoc attr-type (creature-attr creature))) value)
-		;; (setf (cdr (assoc attr-type (creature-attr creature))) (+ value old-value))
-	  (push (copy-list effect ) (creature-attr creature)))))
+	(if (assoc attr-type (member-attr creature))
+		(incf (cdr (assoc attr-type (member-attr creature))) value)
+	  (push (copy-list effect ) (member-attr creature)))))
 
 (defun take-effects-to-creature(creature effects)
   ""
