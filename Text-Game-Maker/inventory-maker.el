@@ -19,7 +19,7 @@
    (type :initarg :type :accessor member-type :documentation "INVENTORY的类型")
    (effects :initarg :effects :accessor member-effects :documentation "INVENTORY的使用效果")
    (watch-trigger :initform nil :initarg :watch-trigger :accessor member-watch-trigger :documentation "查看该INVENTORY时触发的事件")
-   (get-trigger :initform nil :initarg :get-trigger :accessor member-get-trigger :documentation "获取该INVENTORY时触发的事件")
+   (take-trigger :initform nil :initarg :take-trigger :accessor member-take-trigger :documentation "获取该INVENTORY时触发的事件")
    (drop-trigger :initform nil :initarg :drop-trigger :accessor member-drop-trigger :documentation "丢弃该INVENTORY时触发的事件")
    (use-trigger :initform nil :initarg :use-trigger :accessor member-use-trigger :documentation "使用该INVENTORY时触发的事件")
    (wear-trigger :initform nil :initarg :wear-trigger :accessor member-wear-trigger :documentation "装备该INVENTORY时触发的事件")
