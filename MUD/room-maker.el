@@ -25,8 +25,8 @@
 ;; 创建room列表的方法
 (defun build-room (room-entity)
   "根据`text'创建room,并将room存入`rooms-alist'中"
-  (cl-multiple-value-bind (symbol description inventory equipment creature) room-entity
-	(cons symbol (make-instance Room :symbol symbol :description description :inventory inventory :equipment equipment :creature creature))))
+  (cl-multiple-value-bind (symbol description inventory creature) room-entity
+	(cons symbol (make-instance Room :symbol symbol :description description :inventory inventory :creature creature))))
 
 (defun build-rooms(room-config-file)
   "根据`room-config-file'中的配置信息创建各个room"

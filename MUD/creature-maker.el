@@ -69,11 +69,12 @@
 
 (defun take-effect-to-creature (creature effect)
   ""
-  (let ((attr-type (car effect))
+  (let* ((attr-type (car effect))
 		(value (cdr effect)))
 	(if (assoc attr-type (creature-attr creature))
 		(incf (cdr (assoc attr-type (creature-attr creature))) value)
-	  (push effect (creature-attr creature)))))
+		;; (setf (cdr (assoc attr-type (creature-attr creature))) (+ value old-value))
+	  (push (copy-list effect ) (creature-attr creature)))))
 
 (defun take-effects-to-creature(creature effects)
   ""

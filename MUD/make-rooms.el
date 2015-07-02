@@ -8,8 +8,14 @@
 (require 'creature-maker)
 (creatures-init "creature-config.el")
 (require 'action)
-(watch )
+(watch '辣椒)
+inventorys-alist
+(watch)
 (move right)
-
-(get '案板)
+(get '辣椒)
 (describe myself)
+
+(add-inventory-to-creature myself '辣椒)
+(use '辣椒)
+
+(drop '辣椒)

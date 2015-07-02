@@ -44,5 +44,20 @@
   "初始化函数,生成inventory对象"
   (setq inventorys-alist (build-inventorys inventory-config-file)))
 
+(defun inventory-has-type-p (inventory type)
+  "`inventory'是否能被装备"
+  (when (symbolp inventory)
+	(setq inventory (get-inventory-by-symbol inventory)))
+  (let ((inventory-type (inventory-type inventory)))
+	(or (eq inventory-type type)
+		(member type inventory-type))))
+
+(defun inventory-usable-p (inventory)
+  "`inventory'是否能被消耗"
+  (inventory-has-type-p inventory 'usable))
+
+(defun inventory-wearable-p (inventory)
+  "`inventory'是否能被装备"
+  (inventory-has-type-p inventory 'wearable))
 
 (provide 'inventory-maker)

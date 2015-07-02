@@ -1,8 +1,8 @@
 (defvar display-fn #'message
   "显示信息的函数")
+(add-to-list 'load-path (pwd))
 (require 'room-maker)
 (require 'inventory-maker)
-(require 'equipment-maker)
 ;; action functions
 
 ;; 移动到各rooms的命令
@@ -78,9 +78,9 @@
 		 (setq inventory (intern inventory))))
   (unless (inventory-exist-in-creature-p myself inventory)
 	(throw 'exception (format "未携带%s" inventory)))
-  (let ((object (get-inventory-by-symbol inventory)))
-	(unless (eq 'usable (inventory-type object))
-	  (throw 'exception (format "%s不可使用" inventory)))
+  (unless (inventory-usable-p inventory)
+	(throw 'exception (format "%s不可使用" inventory)))
+(let ((object (get-inventory-by-symbol inventory)))
 	(when (and (slot-exists-p object 'use-fn)
 			   (slot-boundp object 'use-fn)
 			   (slot-value object 'use-fn))
@@ -94,9 +94,9 @@
 		 (setq equipment (intern equipment))))
   (unless (equipment-exist-in-creature-p myself equipment)
 	(throw 'exception (format "未携带%s" equipment)))
+  (unless (inventory-wearable-p equipment)
+	(throw 'exception (format "%s不可使用" equipment)))
   (let ((object (get-inventory-by-symbol equipment)))
-	(unless (eq 'wearable (inventory-type object))
-	  (throw 'exception (format "%s不可使用" equipment)))
 	(when (and (slot-exists-p object 'use-fn)
 			   (slot-boundp object 'use-fn)
 			   (slot-value object 'use-fn))
@@ -104,3 +104,5 @@
 	(take-effects-to-creature myself (inventory-effects object))
 	(remove-inventory-from-creature myself equipment)
 	(add-inventory-to-creature creature myself equipment)))
+
+(provide 'action)
