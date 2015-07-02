@@ -16,8 +16,11 @@
 ;; 移动到各rooms的命令
 (tg-defaction tg-move(directory)
 			  "使用'move up/right/down/left'往`directory'方向移动"
-			  (when (symbolp directory)
-				(setq directory (cdr (assoc directory '((up . 0) (right . 1) (down . 2) (left . 3))))))
+			  (when (stringp directory)
+				(setq directory (intern directory)))
+			  (setq directory (cdr (assoc directory '((up . 0) (right . 1) (down . 2) (left . 3)))))
+			  (unless directory
+				(throw 'exception "未知的方向"))
 			  (let ((new-room-symbol (nth directory (beyond-rooms (member-symbol currect-room) room-map))))
 				(unless new-room-symbol
 				  (throw 'exception "那里没有路"))
@@ -114,8 +117,16 @@
 			  "使用'status'查看自己的状态"
 			  (funcall display-fn (describe myself)))
 
-(tg-defaction tg-help ()
-			  "使用'help'查看各action说明"
-			  (funcall display-fn (funcall #'string-join (mapcar #'documentation tg-valid-actions) "\n")))
-
+(tg-defaction tg-help (&rest actions)
+			  "使用'help'查看各action说明
+使用'help action'查看指定action的说明"
+			  (unless actions
+				(setq actions tg-valid-actions))
+			  (dolist (action actions)
+				(when (stringp action)
+				  (setq action (intern (format "tg-%s" action))))
+				(funcall display-fn (documentation action))))
+(tg-defaction tg-quit()
+			  "使用'quit'退出游戏"
+			  (setq tg-over-p t))
 (provide 'action)

@@ -5,7 +5,8 @@
   (if tg-over-p
 	  (text-mode)
 	(tg-fix-screen)
-	(tg-mprinc ">")))
+	(tg-mprinc ">" 'no-newline)
+	(goto-char (point-max))))
 
 
 (defun tg-fix-screen ()
@@ -15,11 +16,13 @@
   (set-window-start (selected-window) (point))
   (end-of-buffer))
 
-(defun tg-mprinc (string)
+(defun tg-mprinc (string &optional no-newline)
   " Print something out, in window mode"
   (if (stringp string)
       (insert string)
-    (insert (prin1-to-string string))))
+    (insert (prin1-to-string string)))
+  (unless no-newline
+	(insert "\n")))
 
 
 (define-derived-mode tg-mode text-mode "TextGame"
@@ -42,13 +45,14 @@
 	  (setq line (downcase (buffer-substring beg (point))))
 	  (princ line)
 	  (tg-mprinc "\n")
-	  (let (action-result)
+	  (let (action-result action things)
 		(setq action-result (catch 'exception
-							  (cl-multiple-value-bind (action thing) (split-string line) 
+							  (setq action (car (split-string line)))
+							  (setq things (cdr (split-string line)))
 								(setq action (intern (format "tg-%s" action)))
-								(if (member action tg-valid-actions)
-									(funcall action (and thing (intern thing))))))
-			  (throw 'exception "未知的命令"))
+								(unless (member action tg-valid-actions)
+									(throw 'exception "未知的命令"))
+								  (apply action things)))
 		(when action-result
 		  (tg-mprinc action-result)))))
   (goto-char (point-max))
