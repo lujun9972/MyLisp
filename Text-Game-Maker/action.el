@@ -15,17 +15,16 @@
   (when (symbolp directory)
 	(setq (cdr (assoc directory '((0 . up) (1 . right) (2 . down) (3 . left))))))
   (let ((new-room-symbol (nth directory (beyond-rooms (member-symbol currect-room) room-map))))
-	(if new-room-symbol
-		(progn
-		  ;; 触发离开事件
-		  (when (member-out-trigger currect-room)
-			(funcall (member-out-trigger currect-room)))
-		  (setq currect-room (get-room-by-symbol new-room-symbol))
-		  ;; 触发进入事件
-		  (when (member-in-trigger currect-room)
-			(funcall (member-in-trigger currect-room)))
-		  (funcall display-fn (describe currect-room)))
-	  (funcall display-fn "那里没有路"))))
+	(unless new-room-symbol
+	  (throw 'exception "那里没有路"))
+	;; 触发离开事件
+	(when (member-out-trigger currect-room)
+	  (funcall (member-out-trigger currect-room)))
+	(setq currect-room (get-room-by-symbol new-room-symbol))
+	;; 触发进入事件
+	(when (member-in-trigger currect-room)
+	  (funcall (member-in-trigger currect-room)))
+	(funcall display-fn (describe currect-room))))
 
 (defun watch (&optional symbol)
   "查看物品/周围环境"
@@ -80,7 +79,7 @@
 	(throw 'exception (format "未携带%s" inventory)))
   (unless (inventory-usable-p inventory)
 	(throw 'exception (format "%s不可使用" inventory)))
-(let ((object (get-inventory-by-symbol inventory)))
+  (let ((object (get-inventory-by-symbol inventory)))
 	(when (and (slot-exists-p object 'use-trigger)
 			   (slot-boundp object 'use-trigger)
 			   (slot-value object 'use-trigger))
