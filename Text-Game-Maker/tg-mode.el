@@ -6,6 +6,7 @@
 	  (text-mode)
 	(tg-fix-screen)
 	(tg-mprinc ">" 'no-newline)
+	(message "point-max=%s" (point-max))
 	(goto-char (point-max))))
 
 
