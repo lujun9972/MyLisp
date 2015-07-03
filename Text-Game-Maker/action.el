@@ -31,7 +31,7 @@
 				;; 触发进入事件
 				(when (member-in-trigger currect-room)
 				  (funcall (member-in-trigger currect-room)))
-				(funcall display-fn (describe currect-room))))
+				(tg-display (describe currect-room))))
 
 (tg-defaction tg-watch (&optional symbol)
 			  "使用'watch'查看周围环境
@@ -111,11 +111,11 @@
 				(take-effects-to-creature myself (member-effects object))
 				(remove-inventory-from-creature myself equipment)
 				(add-inventory-to-creature creature myself equipment)
-				(funcall display-fn (format "您装备了%s" equipment))))
+				(tg-display (format "您装备了%s" equipment))))
 
 (tg-defaction tg-status(&optional useless)
 			  "使用'status'查看自己的状态"
-			  (funcall display-fn (describe myself)))
+			  (tg-display (describe myself)))
 
 (tg-defaction tg-help (&rest actions)
 			  "使用'help'查看各action说明
@@ -125,7 +125,7 @@
 			  (dolist (action actions)
 				(when (stringp action)
 				  (setq action (intern (format "tg-%s" action))))
-				(funcall display-fn (documentation action))))
+				(tg-display (documentation action))))
 (tg-defaction tg-quit()
 			  "使用'quit'退出游戏"
 			  (setq tg-over-p t))
