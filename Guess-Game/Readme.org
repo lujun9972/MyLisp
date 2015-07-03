@@ -1,0 +1,7 @@
+#+TITLE: Readme
+#+AUTHOR: lujun9972
+#+CATEGORY: Guess-Game
+#+DATE: [2015-07-03 五 19:55]
+#+OPTIONS: ^:{}
+* 使用方法
+将Text-Game-Maker和Guess-Game放在同一个目录下,打开Guess-Game/make-rooms.el,然后执行M-x eval-buffer
