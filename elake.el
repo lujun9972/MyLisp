@@ -2,7 +2,9 @@
 
 (eval-when-compile
   (defvar elake-task-relationship (make-hash-table)
-	"存放task之间的依赖关系"))
+	"存放task之间的依赖关系")
+  (defvar elake-executed-task nil
+	"已经执行过的task,不要重新执行"))
 
 (defmacro elake-task (task-symbol prepare-task-list &optional doc-string &rest body)
   "使用elask-task宏来定义task"
@@ -23,11 +25,14 @@
 			((symbolp prepare-task-list)
 			 (elake--execute-task prepare-task-list))
 			(t (error "错误的依赖类型:%s" (type-of prepare-task-list)))))
-	(if (functionp task-symbol)
-		(funcall task-symbol)
+	(if (and (functionp task-symbol))
+		(unless (memq task-symbol elake-executed-task)
+		  (push task-symbol elake-executed-task)
+		  (funcall task-symbol))
 	  (error "未定义的任务:%s" task-symbol))))
 
 (defmacro elake-execute-task (task-symbol)
+  (setq elake-executed-task nil)
   `(elake--execute-task ',task-symbol))
 
 (load "~/myLisp/elakefile.el")
