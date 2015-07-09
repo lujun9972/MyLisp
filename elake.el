@@ -35,7 +35,8 @@
   (setq elake-executed-task nil)
   `(elake--execute-task ',task-symbol))
 
-(load "~/myLisp/elakefile.el")
+(add-to-list 'load-path (file-name-directory load-file-name))
+(load "elakefile" nil t)
 
 (dolist (task (mapcar #'intern (nthcdr 3 command-line-args)))
   (elake--execute-task task))
