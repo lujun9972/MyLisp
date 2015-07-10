@@ -1,0 +1,12 @@
+#+TITLE: Readme
+#+AUTHOR: DarkSun
+#+CATEGORY: elake
+#+DATE: [2015-07-10 周五 16:58]
+#+OPTIONS: ^:{}
+
+* elake简介
+仿真rake的elisp实现
+
+* 待完成事项
++ [ ] 增加file类型的任务
++ [ ] 增加命名空间的支持
