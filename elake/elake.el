@@ -24,41 +24,47 @@
 
 ;; 执行task函数
 (defun elake--file-task-p (task)
-  "判断`task'是否为file类型的任务,这种类型的任务采取make的方式处理,需要判断依赖文件和目标文件的更新时间
+  "判断`task'是否为file类型的任务,这种类型的任务采取make的方式处理,需要判断依赖文件和目标文件的更新时间. 若是file类型的任务,则返回对应的file路径
 
-用双引号括起的字符串表示file类型的任务"
-  (stringp task))
+file类型的任务以`file:'开头"
+  (let ((task-name (format "%s" task)))
+	(when (string-prefix-p "file:" task-name)
+	  (replace-regexp-in-string "file:" "" task-name))))
 
 (defun elake--phony-task-p (task)
   "判断`task'是否为phony类型的任务,这种类型的任务采取ant的方式处理,单纯的执行被依赖的任务
 
-不带双引号的symbol表示phony类型的任务"
-  (symbolp task))
+非file类型的任务就是phony类型的任务"
+  (not (elake--file-task-p task)))
 
 (defun elake--task-executed-p (task)
   "判断`task'是否已经执行"
   (member task elake-executed-task))
 
-(defun elake--need-to-execute-preparation-p (task preparation)
-  "根据`task'判断`preparation'是否需要执行"
-  (cond ((elake--phony-task-p preparation)
-		 (not (elake--task-executed-p preparation))) ;依赖任务未被执行
-		((and (elake--phony-task-p task)
-			  (elake--file-task-p preparation))
-		 (not (file-exists-p preparation))) ;依赖文件不存在
+(defun elake--need-to-execute-task-p (task preparations)
+  "根据`preparation'判断`task'是否需要执行"
+  (cond ((and (elake--phony-task-p task)
+			  (not (elake--task-executed-p task)))
+		 t)								;phony任务未执行
 		((and (elake--file-task-p task)
-			  (elake--file-task-p preparation))
-		 (file-newer-than-file-p task preparation)) ;任务文件比依赖文件更新
-		(t t)))										;默认执行吧....
+			  (not (file-exists-p (elake--file-task-p task)))) 
+		 t)								;file任务的file不存在
+		((and (elake--file-task-p task)
+			  (file-exists-p (elake--file-task-p task))
+			  (cl-some (lambda (preparation-file)
+						 (or (not (file-exists-p preparation-file))
+							 (file-newer-than-file-p preparation-file (elake--file-task-p task))))
+					   (remove nil (mapcar #'elake--file-task-p preparations))))
+		 t)								;依赖文件不存在,或依赖文件更新了
+		(t nil)))						;否则不再执行
 
 (defun elake--execute-task (task)
   "运行`task'标识的任务,会预先运行它的prepare-tasks"
-  (unless (elake--task-executed-p task)
-	(let ((prepare-task-list (gethash task elake-task-relationship)))
-	  ;; 删除不需要执行的预备条件
-	  (setq prepare-task-list (cl-remove-if-not (lambda (preparation)
-												  (elake--need-to-execute-preparation-p task preparation)) prepare-task-list))
-	  ;; 执行预备条件
+  (when (stringp task)
+	(setq task (intern task)))
+  (let ((prepare-task-list (gethash task elake-task-relationship)))
+	;; 执行预备条件
+	(when (elake--need-to-execute-task-p task prepare-task-list)
 	  (when prepare-task-list
 		(cond ((sequencep prepare-task-list)
 			   (mapc #'elake--execute-task prepare-task-list))
@@ -78,10 +84,10 @@
   (when (null tasks)
 	(require 'subr-x)
 	(setq tasks (hash-table-keys elake-task-relationship)))
-  (mapc (lambda (task-symbol)
-		  (when (stringp task-symbol)
-			(setq task-symbol (intern task-symbol)))
-		  (message "%s:%s" task-symbol (documentation task-symbol))) tasks))
+  (mapc (lambda (task)
+		  (when (stringp task)
+			(setq task (intern task)))
+		  (message "%s:%s" task (documentation task))) tasks))
 
 (defun elake-task-documentation (option)
   (apply 'elake--task-documentation command-line-args-left)
@@ -93,10 +99,10 @@
   (when (null tasks)
 	(require 'subr-x)
 	(setq tasks (hash-table-keys elake-task-relationship)))
-  (mapc (lambda (task-symbol)
-		  (when (stringp task-symbol)
-			(setq task-symbol (intern task-symbol)))
-		  (message "%s:%s" task-symbol (gethash task-symbol elake-task-relationship))) tasks))
+  (mapc (lambda (task)
+		  (when (stringp task)
+			(setq task (intern task)))
+		  (message "%s:%s" task (gethash task elake-task-relationship))) tasks))
 
 (defun elake-task-preparation (option)
   (apply 'elake--task-preparation (mapcar #'read command-line-args-left))
