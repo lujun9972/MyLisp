@@ -1,0 +1,17 @@
+#+TITLE: Readme
+#+AUTHOR: DarkSun
+#+CATEGORY: Text-Game-Maker
+#+DATE: [2015-07-09 星期四 20:11]
+#+OPTIONS: ^:{}
+
+* 简介
+Text-Game-Maker是一款制作文本游戏的工具,其功能仿照RPG Maker
+
+* 未完成的工作
+
++ [ ] ROOM要能播放背景音乐,显示背景图片
++ [ ] 为tg-mode添加eldoc支持
++ [ ] tg-mode的prompt中显示当前的ROOM symbal
++ [ ] action中的的attrack还未完成
++ [ ] action中的wear还未完成
++ [ ] 提供辅助程序生成room,map,inventory,creature的配置文件
