@@ -17,9 +17,9 @@
   ;; 存储依赖关系到elask-task-relationship中
   (puthash task prepare-task-list elake-task-relationship)
   ;; 定义名为task-symbol的函数,以doc-string为函数说明,body为函数体
-  `(defun ,task ()
-	 ,doc-string
-	 ,@body)
+	`(defun ,task ($< $@)
+	   ,doc-string
+	   ,@body)
   )
 
 ;; 执行task函数
@@ -72,7 +72,7 @@ file类型的任务以`file:'开头"
 	  (if (functionp task)
 		  (progn
 			(push task elake-executed-task)
-			(funcall task))
+			(funcall task task prepare-task-list))
 		(error "未定义的任务:%s" task)))))
 
 (defun elake-execute-task ()

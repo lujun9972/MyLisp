@@ -3,7 +3,7 @@
   (message "hello"))
 (elake-task wash (file:wash) 
   "wash faces"
-  (message "wash"))
+  (message "%s,%s" $< $@))
 (elake-task file:wash (file:bowl)
   (shell-command "touch wash"))
 (elake-task file:bowl ()
