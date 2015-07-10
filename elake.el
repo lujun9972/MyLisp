@@ -8,6 +8,7 @@
 
 (defmacro elake-task (task-symbol prepare-task-list &optional doc-string &rest body)
   "使用elask-task宏来定义task"
+  (declare (indent defun))
   ;; 存储依赖关系到elask-task-relationship中
   (puthash task-symbol prepare-task-list elake-task-relationship)
   ;; 定义名为task-symbol的函数,以doc-string为函数说明,body为函数体
