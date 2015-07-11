@@ -5,8 +5,17 @@
   (defvar elake-task-relationship (make-hash-table)
 	"存放task之间的依赖关系")
   (defvar elake-executed-task nil
-	"已经执行过的task,不要重新执行"))
+	"已经执行过的task,不要重新执行")
+  (defvar elake--ns nil
+	"命名空间"))
 
+;; 定义namespace
+(defmacro elake-namespace (ns &rest body)
+  (declare (indent 2))
+  (let ((elake--ns ns))
+	`(progn
+	   ,@(mapcar #'macroexpand body))
+  ))
 ;; 定义task
 (defmacro elake-task (task prepare-task-list &optional doc-string &rest body)
   "使用elask-task宏来定义task"
@@ -14,6 +23,12 @@
   ;; 统一prepare-task-list为list格式
   (unless (listp prepare-task-list)
 	(setq prepare-task-list (list prepare-task-list)))
+  (when elake--ns
+	(setq task (intern (format "%s:%s" elake--ns task)))
+	(setq prepare-task-list (mapcar (lambda (task)
+									  (if (elake--file-task-p task)
+										  task
+										(intern (format "%s:%s" elake--ns task)))) prepare-task-list)))
   ;; 存储依赖关系到elask-task-relationship中
   (puthash task prepare-task-list elake-task-relationship)
   ;; 定义名为task-symbol的函数,以doc-string为函数说明,body为函数体
@@ -94,10 +109,10 @@
 (defun elake--file-task-p (task)
   "判断`task'是否为file类型的任务,这种类型的任务采取make的方式处理,需要判断依赖文件和目标文件的更新时间. 若是file类型的任务,则返回对应的file路径
 
-file类型的任务以`file:'开头"
+file类型的任务以`file#'开头"
   (let ((task-name (format "%s" task)))
-	(when (string-prefix-p "file:" task-name)
-	  (replace-regexp-in-string "file:" "" task-name))))
+	(when (string-prefix-p "file#" task-name)
+	  (replace-regexp-in-string "file#" "" task-name))))
 (defalias 'elake--get-path-from-file-task 'elake--file-task-p
   "若`task'为file类型的task,则返回对应的file path")
 

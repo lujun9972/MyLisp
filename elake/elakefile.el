@@ -14,20 +14,21 @@
   (shell-command "touch bowl"))
 (elake-task go-out (say-hello  wash)
   (message "go out"))
+;; 使用(elake-namespace ns &rest body)定义命名空间
+(elake-namespace home
+	(elake-task purchaseVegetables nil
+	  "任务1 -- 买菜"
+	  (message  "到沃尔玛去买菜。"))
+  (elake-task cook (purchaseVegetables)
+	"任务2 -- 做饭"
+	(message  "做一顿香喷喷的饭菜。")))
 
-(elake-task purchaseVegetables nil
-  "任务1 -- 买菜"
-  (message  "到沃尔玛去买菜。"))
-
-(elake-task cook (purchaseVegetables)
-  "任务2 -- 做饭"
- (message  "做一顿香喷喷的饭菜。"))
 
 (elake-task laundry nil
   "任务3 -- 洗衣服"
- (message "把所有衣服扔进洗衣机。"))
+  (message "把所有衣服扔进洗衣机。"))
 ;; 使用(elake-execute-task task)在任务内执行其他任务
 (elake-task today nil
   "今天的任务"
-  (elake-execute-task cook)
+  (elake-execute-task home:cook)
   (elake-execute-task laundry))
