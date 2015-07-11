@@ -119,7 +119,7 @@ file类型的任务以`file:'开头"
 		   nil)								;phony任务已执行过,则不再执行
 		  ((and (elake--file-task-p task)
 				(file-exists-p (elake--file-task-p task)) ;file任务的file已存在
-				(cl-notany #'elake--need-to-execute-task-p preparations) ;且不存在 "未处理的依赖任务或不存在的依赖文件"
+				;; (cl-notany #'elake--need-to-execute-task-p preparations) ;且不存在 "未处理的依赖任务或不存在的依赖文件"
 				(cl-notany (lambda (preparation-file)
 							 (file-newer-than-file-p preparation-file (elake--file-task-p task)))
 						   (remove nil (mapcar #'elake--file-task-p preparations)))) ;且不存在依赖文件比目标文件更新的情况
@@ -128,15 +128,15 @@ file类型的任务以`file:'开头"
 
 (defun elake--execute-task (task)
   "运行`task'标识的任务,会预先运行它的prepare-tasks"
-  (when (stringp task)
-	(setq task (intern task)))
+  ;; (when (stringp task)
+  ;; 	(setq task (intern task)))
   (let ((prepare-task-list (elake--get-task-preparations task)))
 	;; 执行预备条件
-	(when (elake--need-to-execute-task-p task )
-	  (when prepare-task-list
-		(cond ((sequencep prepare-task-list)
-			   (mapc #'elake--execute-task prepare-task-list))
-			  (t (error "错误的依赖类型:%s" (type-of prepare-task-list)))))
+	(when prepare-task-list
+	  (cond ((sequencep prepare-task-list)
+			 (mapc #'elake--execute-task prepare-task-list))
+			(t (error "错误的依赖类型:%s" (type-of prepare-task-list)))))
+	  (when (elake--need-to-execute-task-p task )
 	  (if (functionp task)
 		  (progn
 			(push task elake-executed-task)
@@ -144,7 +144,7 @@ file类型的任务以`file:'开头"
 	 	(error "未定义的任务:%s" task)))))
 
 (defun elake-execute-task ()
-  (elake--execute-task argi))
+  (elake--execute-task (read argi)))
 
 ;; 加载elakefile文件
 (add-to-list 'load-path (file-name-directory load-file-name))
