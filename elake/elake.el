@@ -10,7 +10,7 @@
 ;; 定义task
 (defmacro elake-task (task prepare-task-list &optional doc-string &rest body)
   "使用elask-task宏来定义task"
-  (declare (indent defun))
+  (declare (indent defun) (doc-string 3))
   ;; 统一prepare-task-list为list格式
   (unless (listp prepare-task-list)
 	(setq prepare-task-list (list prepare-task-list)))
@@ -143,8 +143,10 @@ file类型的任务以`file:'开头"
 			(funcall task task prepare-task-list))
 	 	(error "未定义的任务:%s" task)))))
 
-(defun elake-execute-task ()
-  (elake--execute-task (read argi)))
+(defmacro elake-execute-task (task)
+  (if task
+	  `(elake--execute-task (quote ,task))
+	  `(elake--execute-task ,(read argi))))
 
 ;; 加载elakefile文件
 (add-to-list 'load-path (file-name-directory load-file-name))
@@ -155,4 +157,6 @@ file类型的任务以`file:'开头"
 (add-to-list 'command-switch-alist '("-p" . elake-show-tasks-preparations))
 (add-to-list 'command-switch-alist '("--preparations" . elake-show-tasks-preparations))
 (add-to-list 'command-switch-alist '("-h" . elake-show-help))
-(add-to-list 'command-line-functions 'elake-execute-task)
+;; (add-to-list 'command-line-functions 'elake-execute-task)
+(add-to-list 'command-line-functions (lambda ()
+									   (elake--execute-task (read argi))))
