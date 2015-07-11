@@ -111,8 +111,8 @@
 
 file类型的任务以`file#'开头"
   (let ((task-name (format "%s" task)))
-	(when (string-prefix-p "file#" task-name)
-	  (replace-regexp-in-string "file#" "" task-name))))
+	(when (string-prefix-p "file$" task-name)
+	  (replace-regexp-in-string (regexp-quote "file$") "" task-name))))
 (defalias 'elake--get-path-from-file-task 'elake--file-task-p
   "若`task'为file类型的task,则返回对应的file path")
 
