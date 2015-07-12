@@ -7,7 +7,9 @@
   (defvar elake-executed-task nil
 	"已经执行过的task,不要重新执行")
   (defvar elake--ns nil
-	"命名空间"))
+	"命名空间")
+  (defvar elake-default-task nil
+	"默认的任务"))
 
 ;; 定义namespace
 (defmacro elake-namespace (ns &rest body)
@@ -20,6 +22,9 @@
 (defmacro elake-task (task prepare-task-list &optional doc-string &rest body)
   "使用elask-task宏来定义task"
   (declare (indent defun) (doc-string 3))
+  ;; 第一个任务设置为默认任务
+  (unless elake-default-task
+	(setq elake-default-task task))
   ;; 统一prepare-task-list为list格式
   (unless (listp prepare-task-list)
 	(setq prepare-task-list (list prepare-task-list)))
@@ -49,10 +54,11 @@
 ;; 使用-f指定elakefile路径
 (defun elake--init(&optional elakefile)
   "环境初始化"
-  (setq elakefile (or elakefile "elakefile"))
-  (setq elake-task-relationship (make-hash-table)) ;存放task之间的依赖关系
-  (setq elake-executed-task nil) ;"已经执行过的task,不要重新执行"
-  (setq elake--ns nil)
+  (setq elakefile (or elakefile "elakefile")
+		elake-task-relationship (make-hash-table) ;存放task之间的依赖关系
+		elake-executed-task nil ;"已经执行过的task,不要重新执行"
+		elake--ns nil
+		elake-default-task nil)
   (load elakefile nil t))
 
 (defun elake-init (option)
@@ -213,7 +219,13 @@ file类型的任务以`file#'开头"
 		(setq command-line-args-left (cdr command-line-args-left)) ;不管是不是所有的函数都返回nil,这里都需要删掉这个待处理的函数
 		(if handler-function
 			(funcall handler-function switch-string)
-		  (cl-some #'funcall command-line-functions))))))
+		  (cl-some #'funcall command-line-functions)))))
+  ;; 处理默认的任务
+  (when (and (cl-notany (lambda (option)
+						  (member option args)) '("-t" "--task -p" "--preparations" "-h" "--help"))
+			 (null elake-executed-task))
+	(let ((argi (format "%s" elake-default-task)))
+	  (cl-some #'funcall command-line-functions))))
 
 (defmacro elake(&rest args)
   (setq args (mapcar (lambda (x)
