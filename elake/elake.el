@@ -45,6 +45,21 @@
 		 (args-to-next-option (subseq command-line-args-left 0 next-option-position)))
 	(setq command-line-args-left (nthcdr next-option-position command-line-args-left))
 	args-to-next-option))
+
+;; 使用-f指定elakefile路径
+(defun elake--init(&optional elakefile)
+  "环境初始化"
+  (setq elakefile (or elakefile "elakefile"))
+  (setq elake-task-relationship (make-hash-table)) ;存放task之间的依赖关系
+  (setq elake-executed-task nil) ;"已经执行过的task,不要重新执行"
+  (setq elake--ns nil)
+  (load elakefile nil t))
+
+(defun elake-init (option)
+  "显示指定任务的说明文档"
+  (funcall 'elake--init (car command-line-args-left))
+  (setq command-line-args-left (cdr command-line-args-left)))
+
 ;; 显示任务说明
 (defun elake--show-task-documentation (task)
   "显示`task'指定任务的说明"
@@ -113,6 +128,7 @@ file类型的任务以`file#'开头"
   (let ((task-name (format "%s" task)))
 	(when (string-prefix-p "file#" task-name)
 	  (replace-regexp-in-string "file#" "" task-name))))
+
 (defalias 'elake--get-path-from-file-task 'elake--file-task-p
   "若`task'为file类型的task,则返回对应的file path")
 
@@ -163,15 +179,47 @@ file类型的任务以`file#'开头"
 	  `(elake--execute-task (quote ,task))
 	  `(elake--execute-task ,(read argi))))
 
-;; 加载elakefile文件
-(add-to-list 'load-path (file-name-directory load-file-name))
-(load "elakefile" nil t)
+;; elake环境初始化
+(add-to-list 'load-path (file-name-directory (or load-file-name (buffer-file-name))))
 
 ;; 设置参数处理函数
+(add-to-list 'command-switch-alist '("-f" . elake-init))
+(add-to-list 'command-switch-alist '("-t" . elake-show-tasks-documentation))
 (add-to-list 'command-switch-alist '("--task" . elake-show-tasks-documentation))
 (add-to-list 'command-switch-alist '("-p" . elake-show-tasks-preparations))
 (add-to-list 'command-switch-alist '("--preparations" . elake-show-tasks-preparations))
 (add-to-list 'command-switch-alist '("-h" . elake-show-help))
+(add-to-list 'command-switch-alist '("--help" . elake-show-help))
 ;; (add-to-list 'command-line-functions 'elake-execute-task)
 (add-to-list 'command-line-functions (lambda ()
 									   (elake--execute-task (read argi))))
+
+
+;; 以下方式是为了兼容elake的lisp函数方式
+(defun elake--elake(&rest args)
+  "模拟emacs --script的运行方式"
+  (let ((command-line-args-left args))
+	(unless (member "-f" command-line-args-left)	;若没有指定初始化文件,则设置一个默认值
+	  (add-to-list 'command-line-args-left "elakefile") 
+	  (add-to-list 'command-line-args-left "-f"))
+	(unless (= 0 (cl-position "-f" command-line-args-left :test #'equal))
+	  (error "-f参数必须在所有参数最前面"))
+	(while command-line-args-left
+	  (let* ((arg (car command-line-args-left))
+			 (command-switch (assoc arg command-switch-alist))
+			 (switch-string (car command-switch))
+			 (handler-function (cdr command-switch))
+			 (argi arg))
+		(setq command-line-args-left (cdr command-line-args-left)) ;不管是不是所有的函数都返回nil,这里都需要删掉这个待处理的函数
+		(if handler-function
+			(funcall handler-function switch-string)
+		  (cl-some #'funcall command-line-functions))))))
+
+(defmacro elake(&rest args)
+  (setq args (mapcar (lambda (x)
+					   (format "%s" x)) args)) ;统一转换为字符串格式
+  `(elake--elake ,@args))
+
+;; 以下操作是为了兼容#!emacs --script方式
+(apply 'elake--elake command-line-args-left)
+(setq command-line-args-left nil)
