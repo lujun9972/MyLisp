@@ -41,6 +41,21 @@
 	   ,doc-string
 	   ,@body)
   )
+;; 定义删除任务的函数
+(defun elake--remove-task (task)
+  "删除指定的task"
+  (remhash task elake-task-relationship)
+  (fmakunbound task)			;删除已定义函数
+  (setq elake-executed-task (remove task elake-executed-task))
+  (when (eq task elake-default-task)
+	(setq elake-default-task (car (reverse (hash-table-keys elake-task-relationship))))))
+
+(defmacro elake-remove-task (task)
+  "删除指定task"
+  (when elake--ns
+	(setq task (intern (format "%s:%s" elake--ns task))))
+  `(elake--remove-task ',task))
+
 ;; command line args处理函数
 (defun command-line-get-args-to-next-option ()
   "用于获取直到下一个option为止的所有command line args,会将获取的command line args移出`command-line-args-left'变量"
@@ -233,5 +248,6 @@ file类型的任务以`file#'开头"
   `(elake--elake ,@args))
 
 ;; 以下操作是为了兼容#!emacs --script方式
-(apply 'elake--elake command-line-args-left)
-(setq command-line-args-left nil)
+(when command-line-args-left
+  (apply 'elake--elake command-line-args-left)
+  (setq command-line-args-left nil))
