@@ -225,10 +225,12 @@ file类型的任务以`file#'开头"
 (add-to-list 'command-switch-alist '("-h" . elake-show-help))
 (add-to-list 'command-switch-alist '("--help" . elake-show-help))
 ;; (add-to-list 'command-line-functions 'elake-execute-task)
+(setq command-line-functions nil)
 (add-to-list 'command-line-functions (lambda ()
 									   (cond ((string-match "^\\([A-Z]+\\)=\\(.+\\)" argi)
-											  (setenv (match-string 1 argi) (match-string 2 argi)))
-											 
+											  (setenv (match-string 1 argi) (match-string 2 argi))) ;设置环境变量
+											 ((string-match "^\\([A-Z]+\\)=\\(.+\\)" argi)
+											  (setq (intern (match-string 1 argi)) (match-string 2 argi))) ;设置参数
 											 (t (elake--execute-task (read argi))))))
 
 
