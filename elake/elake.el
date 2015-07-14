@@ -9,7 +9,17 @@
   (defvar elake--ns nil
 	"命名空间")
   (defvar elake-default-task nil
-	"默认的任务"))
+	"默认的任务")
+  (defun elake--get-namespace-task (task)
+	"获取task在namespace环境中的名称"
+	(if elake--ns
+		(intern (format "%s:%s" elake--ns task))
+	  task))
+  (defun elake--valid-task-p (task)
+	"判断`task'是否为已定义的任务,若为已定义任务则返回`task',否则返回nil"
+	(when (member task (hash-table-keys elake-task-relationship))
+	  task))
+  )
 
 ;; 定义namespace
 (defmacro elake-namespace (ns &rest body)
@@ -28,18 +38,17 @@
   ;; 统一prepare-task-list为list格式
   (unless (listp prepare-task-list)
 	(setq prepare-task-list (list prepare-task-list)))
-  (when elake--ns
-	(setq task (intern (format "%s:%s" elake--ns task)))
-	(setq prepare-task-list (mapcar (lambda (task)
-									  (if (elake--file-task-p task)
-										  task
-										(intern (format "%s:%s" elake--ns task)))) prepare-task-list)))
+  (setq task (elake--get-namespace-task task))
+  (setq prepare-task-list (mapcar (lambda (task)
+									(if (elake--file-task-p task)
+										task
+									  (elake--get-namespace-task task))) prepare-task-list))
   ;; 存储依赖关系到elask-task-relationship中
   (puthash task prepare-task-list elake-task-relationship)
   ;; 定义名为task-symbol的函数,以doc-string为函数说明,body为函数体
-	`(defun ,task ($< $@)
-	   ,doc-string
-	   ,@body)
+  `(defun ,task ($< $@)
+	 ,doc-string
+	 ,@body)
   )
 ;; 定义删除任务的函数
 (defun elake--remove-task (task)
@@ -52,9 +61,11 @@
 
 (defmacro elake-remove-task (task)
   "删除指定task"
-  (when elake--ns
-	(setq task (intern (format "%s:%s" elake--ns task))))
-  `(elake--remove-task ',task))
+  (let ((valid-task (or (elake--valid-task-p (elake--get-namespace-task task))
+						(elake--valid-task-p task))))
+	(unless valid-task
+	  (error "%s is not a valid task" task))
+	`(elake--remove-task ',valid-task)))
 
 ;; command line args处理函数
 (defun command-line-get-args-to-next-option ()
@@ -188,7 +199,7 @@ file类型的任务以`file#'开头"
 	  (cond ((sequencep prepare-task-list)
 			 (mapc #'elake--execute-task prepare-task-list))
 			(t (error "错误的依赖类型:%s" (type-of prepare-task-list)))))
-	  (when (elake--need-to-execute-task-p task )
+	(when (elake--need-to-execute-task-p task )
 	  (if (functionp task)
 		  (progn
 			(push task elake-executed-task)
@@ -196,9 +207,11 @@ file类型的任务以`file#'开头"
 	 	(error "未定义的任务:%s" task)))))
 
 (defmacro elake-execute-task (task)
-  (if task
-	  `(elake--execute-task (quote ,task))
-	  `(elake--execute-task ,(read argi))))
+  (let ((valid-task (or (elake--valid-task-p (elake--get-namespace-task task))
+						(elake--valid-task-p task))))
+	(unless valid-task
+	  (error "%s is not a valide task" task))
+	`(elake--execute-task (quote ,valid-task))))
 
 ;; elake环境初始化
 (add-to-list 'load-path (file-name-directory (or load-file-name (buffer-file-name))))
