@@ -226,7 +226,10 @@ file类型的任务以`file#'开头"
 (add-to-list 'command-switch-alist '("--help" . elake-show-help))
 ;; (add-to-list 'command-line-functions 'elake-execute-task)
 (add-to-list 'command-line-functions (lambda ()
-									   (elake--execute-task (read argi))))
+									   (cond ((string-match "^\\([A-Z]+\\)=\\(.+\\)" argi)
+											  (setenv (match-string 1 argi) (match-string 2 argi)))
+											 
+											 (t (elake--execute-task (read argi))))))
 
 
 ;; 以下方式是为了兼容elake的lisp函数方式
