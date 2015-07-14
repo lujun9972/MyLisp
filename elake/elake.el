@@ -255,10 +255,10 @@ file类型的任务以`file#'开头"
 	(let ((argi (format "%s" elake-default-task)))
 	  (cl-some #'funcall command-line-functions))))
 
-(defmacro elake(&rest args)
+(defun elake (&rest args)
   (setq args (mapcar (lambda (x)
 					   (format "%s" x)) args)) ;统一转换为字符串格式
-  `(elake--elake ,@args))
+  (apply 'elake--elake args))
 
 ;; 以下操作是为了兼容#!emacs --script方式
 (when command-line-args-left
