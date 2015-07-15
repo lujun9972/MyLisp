@@ -10,6 +10,8 @@
 	"命名空间")
   (defvar elake-default-task nil
 	"默认的任务")
+  (defvar elake--user-params-alist nil
+	"存放用户通过命令行传递过来的参数")
   (defun elake--get-namespace-task (task)
 	"获取task在namespace环境中的名称"
 	(if elake--ns
@@ -82,6 +84,7 @@
   "环境初始化"
   (setq elakefile (or elakefile "elakefile")
 		elake-task-relationship (make-hash-table) ;存放task之间的依赖关系
+		elake--user-params-alist nil	  ;存放用户通过命令行传入的参数
 		elake-executed-task nil ;"已经执行过的task,不要重新执行"
 		elake--ns nil
 		elake-default-task nil)
@@ -203,7 +206,8 @@ file类型的任务以`file#'开头"
 	  (if (functionp task)
 		  (progn
 			(push task elake-executed-task)
-			(funcall task task prepare-task-list))
+			(eval `(let ,elake--user-params-alist
+					 (funcall task task prepare-task-list))))
 	 	(error "未定义的任务:%s" task)))))
 
 (defmacro elake-execute-task (task)
@@ -227,11 +231,12 @@ file类型的任务以`file#'开头"
 ;; (add-to-list 'command-line-functions 'elake-execute-task)
 (setq command-line-functions nil)
 (add-to-list 'command-line-functions (lambda ()
+									   (let ((case-fold-search nil)) ;正则匹配区分大小写
 									   (cond ((string-match "^\\([A-Z]+\\)=\\(.+\\)" argi)
 											  (setenv (match-string 1 argi) (match-string 2 argi))) ;设置环境变量
-											 ((string-match "^\\([A-Z]+\\)=\\(.+\\)" argi)
-											  (setq (intern (match-string 1 argi)) (match-string 2 argi))) ;设置参数
-											 (t (elake--execute-task (read argi))))))
+											 ((string-match "^\\(.+\\)=\\(.+\\)" argi)
+											  (push (list (intern (match-string 1 argi)) (match-string 2 argi)) elake--user-params-alist)) ;设置参数
+											 (t (elake--execute-task (read argi)))))))
 
 
 ;; 以下方式是为了兼容elake的lisp函数方式

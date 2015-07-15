@@ -1,8 +1,12 @@
 ;; 可以使用(lexical-let)来模拟块域任务(Block Scoping  Tasks)
 (lexical-let ((who "somebody"))
   (elake-task say-hello (wash) 
-	"say hello to "
+	"say hello "
 	(message "hello %s" who)))
+;; 可以通过elake 变量=值的方式給任务传递新变量
+(elake-task say-hello-to  nil
+	"say hello to "
+	(message "hello to %s" who))
 ;; 可以使用$<表示目标任务,$@表示依赖任务列表
 (elake-task wash (file$wash) 
   "wash faces"
