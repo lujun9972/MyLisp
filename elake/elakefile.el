@@ -2,7 +2,8 @@
 (lexical-let ((who "somebody"))
   (elake-task say-hello (wash) 
 	"say hello "
-	(message "hello %s" who)))
+	(print (format "hello %s" who))
+	(print (format "hello %s" who))))
 ;; 可以通过elake 变量=值的方式給任务传递新变量
 (elake-task say-hello-to  nil
 	"say hello to "
