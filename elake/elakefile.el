@@ -9,13 +9,13 @@
 	"say hello to "
 	(message "hello to %s" who))
 ;; 可以使用$<表示目标任务,$@表示依赖任务列表
-(elake-task wash (file$wash) 
+(elake-task wash (:wash) 
   "wash faces"
   (message "%s,%s" $< $@))
-;; file$FILE-PATH格式的任务为文件任务
-(elake-task file$wash (file$bowl)
+;; :FILE-PATH格式的任务为文件任务
+(elake-task :wash (:bowl)
   (shell-command "touch wash"))
-(elake-task file$bowl ()
+(elake-task :bowl ()
   (shell-command "touch bowl"))
 (elake-task go-out (say-hello  wash)
   (message "go out"))
