@@ -81,19 +81,24 @@
 	args-to-next-option))
 
 ;; 使用-f指定elakefile路径
-(defun elake--init(&optional elakefile)
+(defvar elake--init-file "elakefile"
+  "elake的初始化文件路径,默认为elakefile")
+(defun elake--init(init-file)
   "环境初始化"
-  (setq elakefile (or elakefile "elakefile")
-		elake-task-relationship (make-hash-table) ;存放task之间的依赖关系
+  (setq elake-task-relationship (make-hash-table) ;存放task之间的依赖关系
 		elake--user-params-alist nil	  ;存放用户通过命令行传入的参数
 		elake-executed-task nil ;"已经执行过的task,不要重新执行"
 		elake--ns nil
 		elake-default-task nil)
-  (load elakefile nil t))
+  (load init-file nil t))
 
-(defun elake-init (option)
-  "显示指定任务的说明文档"
-  (funcall 'elake--init (car command-line-args-left))
+(defun elake--set-init-file (file)
+  "设置elake的初始化文件"
+  (setq elake--init-file file))
+
+(defun elake-set-init-file (option)
+  "设置elake的初始化文件"
+  (elake--set-init-file (car command-line-args-left))
   (setq command-line-args-left (cdr command-line-args-left)))
 
 ;; 显示任务说明
@@ -221,49 +226,39 @@ file类型的任务以`:'开头"
 (add-to-list 'load-path (file-name-directory (or load-file-name (buffer-file-name))))
 
 ;; 设置参数处理函数
-(add-to-list 'command-switch-alist '("-f" . elake-init))
+(add-to-list 'command-switch-alist '("-f" . elake-set-init-file))
 (add-to-list 'command-switch-alist '("-t" . elake-show-tasks-documentation))
 (add-to-list 'command-switch-alist '("--task" . elake-show-tasks-documentation))
 (add-to-list 'command-switch-alist '("-p" . elake-show-tasks-preparations))
 (add-to-list 'command-switch-alist '("--preparations" . elake-show-tasks-preparations))
 (add-to-list 'command-switch-alist '("-h" . elake-show-help))
 (add-to-list 'command-switch-alist '("--help" . elake-show-help))
-;; (add-to-list 'command-line-functions 'elake-execute-task)
-(setq command-line-functions nil)
-(add-to-list 'command-line-functions (lambda ()
-									   (let ((case-fold-search nil)) ;正则匹配区分大小写
-									   (cond ((string-match "^\\([A-Z]+\\)=\\(.+\\)" argi)
-											  (setenv (match-string 1 argi) (match-string 2 argi))) ;设置环境变量
-											 ((string-match "^\\(.+\\)=\\(.+\\)" argi)
-											  (push (list (intern (match-string 1 argi)) (match-string 2 argi)) elake--user-params-alist)) ;设置参数
-											 (t (elake--execute-task (read argi)))))))
-
 
 ;; 以下方式是为了兼容elake的lisp函数方式
 (defun elake--elake(&rest args)
   "模拟emacs --script的运行方式"
-  (let ((command-line-args-left args))
-	(unless (member "-f" command-line-args-left)	;若没有指定初始化文件,则设置一个默认值
-	  (add-to-list 'command-line-args-left "elakefile") 
-	  (add-to-list 'command-line-args-left "-f"))
-	(unless (= 0 (cl-position "-f" command-line-args-left :test #'equal))
-	  (error "-f参数必须在所有参数最前面"))
+  (let ((command-line-args-left args)
+		jobs)
 	(while command-line-args-left
 	  (let* ((arg (car command-line-args-left))
 			 (command-switch (assoc arg command-switch-alist))
 			 (switch-string (car command-switch))
 			 (handler-function (cdr command-switch))
-			 (argi arg))
+			 (case-fold-search nil))	;正则匹配区分大小写
 		(setq command-line-args-left (cdr command-line-args-left)) ;不管是不是所有的函数都返回nil,这里都需要删掉这个待处理的函数
-		(if handler-function
-			(funcall handler-function switch-string)
-		  (cl-some #'funcall command-line-functions)))))
-  ;; 处理默认的任务
-  (when (and (cl-notany (lambda (option)
-						  (member option args)) '("-t" "--task -p" "--preparations" "-h" "--help"))
-			 (null elake-executed-task))
-	(let ((argi (format "%s" elake-default-task)))
-	  (cl-some #'funcall command-line-functions))))
+		(cond (handler-function
+			   (funcall handler-function switch-string))
+			  ((string-match "^\\([A-Z]+\\)=\\(.+\\)" arg)
+			   (setenv (match-string 1 arg) (match-string 2 arg))) ;设置环境变量
+			  ((string-match "^\\(.+\\)=\\(.+\\)" arg)
+			   (push (list (intern (match-string 1 arg)) (match-string 2 arg)) elake--user-params-alist)) ;设置参数
+			  (t (push arg jobs)))))
+	(elake--init elake--init-file)
+	(when (and (cl-notany (lambda (option)
+							(member option args)) '("-t" "--task -p" "--preparations" "-h" "--help"))
+			   (null jobs))
+	  (push (format "%s" elake-default-task) jobs))		;设置默认的任务
+	(mapc #'elake--execute-task (mapcar #'intern jobs))))
 
 (defun elake (&rest args)
   (setq args (mapcar (lambda (x)
