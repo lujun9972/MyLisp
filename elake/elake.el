@@ -106,7 +106,7 @@
   "显示`task'指定任务的说明"
   (when (stringp task)
 	(setq task (intern task)))
-  (print (format "%s:%s" task (documentation task))))
+  (message "%s:%s" task (documentation task)))
 
 (defun elake--show-tasks-documentation (&rest tasks)
   "显示`tasks'指定任务的说明"
@@ -129,7 +129,7 @@
   "显示`task'指定任务的说明"
   (when (stringp task)
 	(setq task (intern task)))
-  (print (format "%s:%s" task (elake--get-task-preparations task))))
+  (message "%s:%s" task (elake--get-task-preparations task)))
 
 (defun elake--show-tasks-preparations (&rest tasks)
   "显示`tasks'指定任务的说明"
@@ -148,7 +148,7 @@
 		 (option (car command-switch))
 		 (fn (cdr command-switch))
 		 (help (documentation fn)))
-	(print (format "%s:\t%s" option help))))
+	 (message "%s:\t%s" option help)))
 
 (defun elake--show-options-help (&rest options)
   "根据`command-switch-alist'显示`options'中各个option的帮助信息"
@@ -264,7 +264,10 @@ file类型的任务以`:'开头"
   (setq args (mapcar (lambda (x)
 					   (format "%s" x)) args)) ;统一转换为字符串格式
   (with-output-to-string 
-	(apply 'elake--elake args)))
+	(flet ((message (fmt &rest args)
+					(princ (apply #'format fmt args))
+					(princ "\n")))
+	(apply 'elake--elake args))))
 
 ;; 以下操作是为了兼容#!emacs --script方式
 (when command-line-args-left
