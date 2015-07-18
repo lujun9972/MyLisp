@@ -53,6 +53,36 @@
 	 ,doc-string
 	 ,@body)
   )
+;; 根据模式来自动生产任务
+(defvar elake-rule-template-alist nil
+  "存放定义的规则模板")
+(defmacro elake-rule (rule prepare-rule-list &rest body)
+  "使用elask-rule宏来定义rule"
+  (declare (indent defun))
+  ;; 统一prepare-task-list为list格式
+  (unless (stringp rule)
+	(error "rule[%s]需要使用字符串格式" rule))
+  (unless (listp prepare-rule-list)
+	(setq prepare-rule-list (list prepare-rule-list)))
+  (unless (cl-every #'stringp prepare-rule-list)
+	(error "依赖rule[%s]需要使用字符串格式" prepare-rule-list))
+  ;; 存储规则模板到elask-rule-template-alist中
+  `(push '(,(format "^%s$" rule) ,prepare-rule-list ,body) elake-rule-template-alist))
+
+(defun elake--generate-task-by-rule (task)
+  "根据规则模板来自动生成任务"
+  (let* ((task-name (format "%s" task))
+		 (template (assoc-if (lambda (rule)
+							   (string-match-p rule task-name)) elake-rule-template-alist)))
+	(when template
+	  (let* ((rule (car template))
+			 (prepare-rule-list (cadr template))
+			 (body (caddr template))
+			 (prepare-task-list (mapcar (lambda (prepare-rule)
+										  (intern (replace-regexp-in-string rule prepare-rule task-name)))
+										prepare-rule-list)))
+		(eval (append `(elake-task ,task ,prepare-task-list) body))))))
+
 ;; 定义删除任务的函数
 (defun elake--remove-task (task)
   "删除指定的task"
@@ -85,7 +115,10 @@
   "elake的初始化文件路径,默认为elakefile")
 (defun elake--init(init-file)
   "环境初始化"
+  ;; 清除之前定义的task
+  (mapc #'elake--remove-task (hash-table-keys elake-task-relationship))
   (setq elake-task-relationship (make-hash-table) ;存放task之间的依赖关系
+		elake-rule-template-alist nil
 		elake--user-params-alist nil	  ;存放用户通过命令行传入的参数
 		elake-executed-task nil ;"已经执行过的task,不要重新执行"
 		elake--ns nil
@@ -148,7 +181,7 @@
 		 (option (car command-switch))
 		 (fn (cdr command-switch))
 		 (help (documentation fn)))
-	 (message "%s:\t%s" option help)))
+	(message "%s:\t%s" option help)))
 
 (defun elake--show-options-help (&rest options)
   "根据`command-switch-alist'显示`options'中各个option的帮助信息"
@@ -199,8 +232,10 @@ file类型的任务以`:'开头"
 
 (defun elake--execute-task (task)
   "运行`task'标识的任务,会预先运行它的prepare-tasks"
-  ;; (when (stringp task)
-  ;; 	(setq task (intern task)))
+  (unless (elake--valid-task-p task)
+	(elake--generate-task-by-rule task))
+  (unless (elake--valid-task-p task)
+	(error "未定义的任务:%s"task ))
   (let ((prepare-task-list (elake--get-task-preparations task)))
 	;; 执行预备条件
 	(when prepare-task-list
@@ -208,12 +243,9 @@ file类型的任务以`:'开头"
 			 (mapc #'elake--execute-task prepare-task-list))
 			(t (error "错误的依赖类型:%s" (type-of prepare-task-list)))))
 	(when (elake--need-to-execute-task-p task )
-	  (if (functionp task)
-		  (progn
-			(push task elake-executed-task)
-			(eval `(let ,elake--user-params-alist
-					 (funcall task task prepare-task-list))))
-	 	(error "未定义的任务:%s" task)))))
+	  (push task elake-executed-task)
+	  (eval `(let ,elake--user-params-alist
+			   (funcall task task prepare-task-list))))))
 
 (defmacro elake-execute-task (task)
   (let ((valid-task (or (elake--valid-task-p (elake--get-namespace-task task))
@@ -264,10 +296,14 @@ file类型的任务以`:'开头"
   (setq args (mapcar (lambda (x)
 					   (format "%s" x)) args)) ;统一转换为字符串格式
   (with-output-to-string 
-	(flet ((message (fmt &rest args)
-					(princ (apply #'format fmt args))
-					(princ "\n")))
-	(apply 'elake--elake args))))
+	(let ((old-message (symbol-function 'message)))
+	  (unwind-protect
+		  (progn
+			(fset 'message (lambda (fmt &rest args)
+							 (princ (apply #'format fmt args))
+							 (princ "\n")))
+			(apply 'elake--elake args))
+		(fset 'message old-message)))))
 
 ;; 以下操作是为了兼容#!emacs --script方式
 (when command-line-args-left
