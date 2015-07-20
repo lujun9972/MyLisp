@@ -24,13 +24,20 @@
 					   url))
 		url-things)
 	(with-temp-buffer 
-	  (flet ((save-url-thing-fn (cont)
+	  (flet ((tag-node-p (node)
+						 (listp (cdr node)))
+			 (attr-node-p (node)
+						 (atom (cdr node)))
+			 (save-url-thing-fn (cont &optional ignore)
+								"`ignore'参数指定了是否跳过tag node的attr判断. 当处理子tag时,需要根据子tag是否为需要的tag来设置该值."
 								(dolist (sub cont)
-								  (cond ((eq (car sub) attr)
-										 (when (string-match-p regexp (cdr sub))
+								  (cond ((and (attr-node-p sub)
+											  (not ignore))
+										 (when (and (eq (car sub) attr)
+													(string-match-p regexp (cdr sub)))
 										   (push (cdr sub) url-things)))
-										((listp (cdr sub))
-										 (let ((things (save-url-thing-fn (cdr sub))))
+										((tag-node-p sub)
+										 (let ((things (save-url-thing-fn (cdr sub) (not (eq (car sub) tag)))))
 										   (when things
 											 (push things url-things)))))))) ;处理嵌套tag
 		(let ((shr-external-rendering-functions `((,tag . save-url-thing-fn))))
