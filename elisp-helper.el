@@ -197,5 +197,15 @@
   (map 'list #'(lambda (c)
 				 (intern (make-string 1 c)))
 	   (symbol-name sym)))
+(defun find-node-if (predicate tree)
+  "在`tree'中查找符合条件的第一个节点"
+  (cond ((atom tree)
+		 (when (funcall predicate tree)
+		   tree))
+		((listp tree)
+		 (let ((result (find-node-if predicate (car tree))))
+		   (if result
+			   result
+			 (find-node-if predicate (cdr tree)))))))
 
 (provide 'elisp-helper)
