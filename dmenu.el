@@ -32,3 +32,6 @@
 	(setq dmenu-history-list (remove execute-file dmenu-history-list))
 	(push execute-file dmenu-history-list)
 	(apply #'start-process execute-file dmenu-output-buffer execute-file args)))
+
+
+(provide 'dmenu)
