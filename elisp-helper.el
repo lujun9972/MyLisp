@@ -1,4 +1,5 @@
 (require 'cl)
+(require 'subr)
 (defun function-arity (fn)
   "获取函数`fn'所允许的最小和最大参数个数,参见`subr-arity'但fn可以是任意函数"
   (setq fn (indirect-function fn))
@@ -197,15 +198,124 @@
   (map 'list #'(lambda (c)
 				 (intern (make-string 1 c)))
 	   (symbol-name sym)))
-(defun find-node-if (predicate tree)
+;; onlisp中关于函数的辅组工具
+(defvar *!equivs* (make-hash-table)
+  "存放一般函数与其破坏性函数的对应关系")
+
+(defun ! (fn)
+  "获取`fn'对应的破坏性函数"
+  (or (gethash fn *!equivs*) fn))
+
+(defun def! (fn fn!)
+  "定义`fn'的破坏性函数为`fn!'"
+  (setf (gethash fn *!equivs*) fn!))
+
+(defun memoize (fn)
+  "返回`fn'的带缓存功能的相应版本的函数"
+  (lexical-let ((cache (make-hash-table :test 'equal)))
+	(lambda (&rest args)
+	  (multiple-value-bind (val win) 
+		(if (assoc args (hash-table-keys cache))
+			(gethash args cache)
+		  (setf (gethash args cache)
+				(apply fn args)))))))
+(defun compose-fns (&rest fns)
+  "组合多个函数"
+  (if fns
+	  (lexical-let ((fn1 (car (last fns)))
+			(fns (butlast fns)))
+		(lambda (&rest args)
+			 (reduce #'funcall fns
+						:from-end t
+						:initial-value (apply fn1 args))))
+	#'identity))
+
+(defun complement (pred)
+  "返回判断函数`pred'的互补函数not-pred"
+  (compose-fns #'not pred))
+(defun fif (if then &optional else)
+  (lambda (x)
+	(if (funcall if x)
+		(funcall then x)
+	  (if else (funcall else x)))))
+
+(defun fint (fn &rest fns)
+  "function intersection
+(funcall (fint fn1 fn2 fn3) x)等价于(and (fn1 x) (fn2 x) (fn3 x))"
+  (if (null fns)
+	  fn
+	(let ((chain (apply #'fint fns)))
+	  (lambda (x)
+		(and (funcall fn x) (funcall chain x))))))
+
+(defun fun (fn &rest fns)
+  " (funcall (fint fn1 fn2 fn3) x)等价于(or (fn1 x) (fn2 x) (fn3 x))"
+  (if (null fns)
+	  fn
+	(let ((chain (apply #'fun fns)))
+	  (lambda (x)
+		(or (funcall fn x) (funcall chain x))))))
+
+(defun lrec (rec &optional base)
+  "list recurser,对列表上的cdr进行递归操作
+lrec的第一个参数必须是一个接受两个参数的函数，一个参数是列表的当前car，另一个参数是个函数，通 过调用这个函数，递归得以进行。"
+  (labels ((self (lst)
+				 (if (null lst)
+					 (if (functionp base)
+						 (funcall base)
+					   base)
+				   (funcall rec (car lst)
+							#'(lambda ()
+								 (self (cdr lst)))))))
+	#'self))
+
+(cl-defun ttrav (rec &optional (base #'identity))
+  "对数上的叶子节点递归操作.
+
+对各叶子节点调用base操作
+对car和cdr子树,使用rec函数整合,(rec (car  tree) (cdr tree))"
+  (labels ((self (tree)
+				 (if (atom tree)
+					 (if (functionp base)
+						 (funcall base tree)
+					   base)
+				   (funcall rec (self (car tree))
+							(if (cdr tree)
+								(self (cdr tree)))))))
+	#'self))
+
+(cl-defun trec (rec &optional (base #'identiy))
+  "trec是一个更通用的树结构递归操作函数的生成器, 这种函数生成器能让我们控制递归调用发生的时机，以及是否继续递归。
+trec的第一个参数应当是一个具有三个参数的函数，三个参数分别是: 当前的对象，以及两个递归调用。后两个参数将是用来表示对左子树和右子树进行递归的两个闭包。"
+  (labels
+	  ((self (tree)
+			 (if (atom tree)
+				 (if (functionp base)
+					 (funcall base tree)
+				   base)
+			   (funcall rec tree
+						#'(lambda ()
+							 (self (car tree)))
+						   #'(lambda ()
+								(if (cdr tree)
+									(self (cdr tree))))))))
+	#'self))
+
+(defun rfind-if-1 (predicate tree)
+  "使用`trec'生成的rfind-if"
+  (funcall (trec #'(lambda (o l r) (or (funcall l) (funcall r)))
+				 #'(lambda (tree) (and (funcall predicate tree) tree)))
+		   tree))
+
+(defun rfind-if (predicate tree)
   "在`tree'中查找符合条件的第一个节点"
   (cond ((atom tree)
 		 (when (funcall predicate tree)
 		   tree))
 		((listp tree)
-		 (let ((result (find-node-if predicate (car tree))))
+		 (let ((result (rfind-if predicate (car tree))))
 		   (if result
 			   result
-			 (find-node-if predicate (cdr tree)))))))
+			 (rfind-if predicate (cdr tree)))))))
 
 (provide 'elisp-helper)
