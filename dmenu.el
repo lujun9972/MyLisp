@@ -27,11 +27,11 @@
 	(when (= prefix 4)
 	  (setq args (read-string "请输入参数: "))
 	  (with-temp-buffer
-		(insert args)
-		(setq args (car (shell--parse-pcomplete-arguments)))))
+	  	(insert args)
+	  	(setq args (car (shell--parse-pcomplete-arguments)))))
 	(setq dmenu-history-list (remove execute-file dmenu-history-list))
 	(push execute-file dmenu-history-list)
-	(apply #'start-process execute-file dmenu-output-buffer execute-file args)))
+	(apply #'make-comint execute-file execute-file nil args)))
 
 
 (provide 'dmenu)
