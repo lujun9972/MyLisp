@@ -5,7 +5,7 @@
 (defun dmenu--cache-executable-files()
   "缓存可执行文件列表"
   (let* ((files (mapcan (lambda (dir)
-						  (directory-files dir t nil nil)) (remove-if-not #'file-exists-p exec-path))))
+						  (directory-files dir t nil nil)) (remove-if-not #'file-exists-p (remove-if-not #'stringp exec-path)))))
 		 (setq dmenu--cache-executable-files (sort (mapcar #'file-name-nondirectory (remove-if #'file-directory-p (remove-if-not #'file-executable-p files))) #'string< ))))
 
 (defvar dmenu--update-timer nil)
