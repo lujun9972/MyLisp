@@ -31,7 +31,7 @@
 	  	(setq args (car (shell--parse-pcomplete-arguments)))))
 	(setq dmenu-history-list (remove execute-file dmenu-history-list))
 	(push execute-file dmenu-history-list)
-	(apply #'make-comint execute-file execute-file nil args)))
+	(switch-to-buffer (apply #'make-comint execute-file execute-file nil args))))
 
 
 (provide 'dmenu)
