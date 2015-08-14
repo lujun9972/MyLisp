@@ -1,5 +1,5 @@
 (require 'cl)
-(require 'subr)
+(load "subr")
 (defun function-arity (fn)
   "获取函数`fn'所允许的最小和最大参数个数,参见`subr-arity'但fn可以是任意函数"
   (setq fn (indirect-function fn))
