@@ -43,7 +43,7 @@
 	  (search-forward-regexp "^$")
 	  (setq content (buffer-substring-no-properties (+ (point )1) (point-max))))
 	(kill-buffer buf)
-	content))
+	(decode-coding-string content 'utf-8-dos)))
 
 (defun webchat-client--say(who content &optional host port)
   (setq host (or host webchat-client-service-host))
@@ -72,7 +72,7 @@
 	  ;; (goto-char (point-max))
 	  ;; (insert (substring content (point)))
 	  (erase-buffer)
-	  (insert (decode-coding-string content 'utf-8-dos))
+	  (insert content)
 	  )
 	(select-or-create-buffer-window cb)))
 
