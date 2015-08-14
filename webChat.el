@@ -69,9 +69,11 @@
 		(cb (current-buffer)))
 	(save-excursion 
 	  (select-or-create-buffer-window (get-buffer-create webchat-client-buffer))
+	  ;; (goto-char (point-max))
+	  ;; (insert (substring content (point)))
 	  (erase-buffer)
-	  (insert content)
-	  (goto-char (point-max)))
+	  (insert (decode-coding-string content 'utf-8))
+	  )
 	(select-or-create-buffer-window cb)))
 
 ;; (defun webchat-talk()
@@ -103,5 +105,11 @@
 (defun webchat-talk ()
   (interactive)
   (setq webchat-client-who (read-string "请输入你的名称: " webchat-client-who))
-  (setq webchat-client--timer (run-with-timer 0 1 #'webchat-client--display-content))
+  (setq webchat-client--timer (run-with-idle-timer 1 1 #'webchat-client--display-content))
   (webchat-mode 1))
+
+(defun webchat-quit ()
+  (interactive)
+  (cancel-timer webchat-client--timer)
+  (select-window (get-buffer-window webchat-client-buffer))
+  (kill-buffer-and-window))
