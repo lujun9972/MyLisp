@@ -26,7 +26,7 @@ re-downloaded in order to locate PACKAGE."
         (package-install package)
       (progn
         (package-refresh-contents)
-        (require-package package min-version t)))))
+        (package-install-new package min-version t)))))
 
 (defun require-and-install (pkg &optional filename noerror)
   ""
