@@ -72,7 +72,7 @@
 	  ;; (goto-char (point-max))
 	  ;; (insert (substring content (point)))
 	  (erase-buffer)
-	  (insert (decode-coding-string content 'utf-8))
+	  (insert (decode-coding-string content 'utf-8-dos))
 	  )
 	(select-or-create-buffer-window cb)))
 
@@ -105,7 +105,8 @@
 (defun webchat-talk ()
   (interactive)
   (setq webchat-client-who (read-string "请输入你的名称: " webchat-client-who))
-  (setq webchat-client--timer (run-with-idle-timer 1 1 #'webchat-client--display-content))
+  ;; (setq webchat-client--timer (run-with-idle-timer 1 1 #'webchat-client--display-content))
+  (setq webchat-client--timer (run-with-timer 1 1 #'webchat-client--display-content))
   (webchat-mode 1))
 
 (defun webchat-quit ()
