@@ -25,6 +25,22 @@
 		(match-string 1 dir)
 	  dir)))
 
+(defun files-in-directory-with-subdir (dir &optional full match nosort)
+  "类似directory-files,但是会递归搜索子目录,且不返回目录"
+  (when (file-directory-p dir)
+	(let* ((files (remove-if #'file-directory-p (directory-files dir t match)))
+		   (dirs (remove-if (lambda (dir)
+						   (string-match-p "/\\..*$" dir)) (remove-if-not #'file-directory-p (directory-files dir t)))))
+	  (setq files (append files (mapcan (lambda (dir)
+										  (files-in-directory-with-subdir dir t match)) dirs)))
+	  (unless full
+	  	(setq files (mapcar (lambda (file)
+							  (file-relative-name file dir))
+							files)))
+	  (unless nosort
+		(setq files (sort files #'string<)))
+	  files)))
+
 ;; 以下函数摘自李杀网
 (defun fullpath-relative-to-current-file (file-relative-path)
   "Returns the full path of FILE-RELATIVE-PATH, relative to file location where this function is called.
