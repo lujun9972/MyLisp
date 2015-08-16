@@ -54,7 +54,7 @@
 (defun webchat-client--get-content(&optional host port)
   (setq host (or host webchat-client-service-host))
   (setq port (or port webchat-client-service-port))
-  (let ((buf (url-retrieve-synchronously (format "http://%s:%s/?start=%s" host port webchat-client--total-lines)))
+  (let ((buf (url-retrieve-synchronously (format "http://%s:%s/?start=%s" host port webchat-client--total-lines) t))
 		content)
 	(with-current-buffer buf
 	  (goto-char (point-min))
@@ -72,7 +72,7 @@
 					  host
 					  port
 					  (url-hexify-string who)
-					  (url-hexify-string content))))
+					  (url-hexify-string content)) t))
 		content)
 	(with-current-buffer buf
 	  (goto-char (point-min))
