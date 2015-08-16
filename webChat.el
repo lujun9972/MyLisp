@@ -45,15 +45,15 @@
 
 ;; 以下是client端代码
 (require 'url)
-(defvar webchat-client-service-host "localhost"
+(defvar webchat-client-server-host "localhost"
   "webchat的服务器地址")
-(defvar webchat-client-service-port 8000
+(defvar webchat-client-server-port 8000
   "webchat的服务器监听端口")
 (defvar webchat-client--total-lines 0
   "webchat客户端已经收到多少行聊天记录")
 (defun webchat-client--get-content(&optional host port)
-  (setq host (or host webchat-client-service-host))
-  (setq port (or port webchat-client-service-port))
+  (setq host (or host webchat-client-server-host))
+  (setq port (or port webchat-client-server-port))
   (let ((buf (url-retrieve-synchronously (format "http://%s:%s/?start=%s" host port webchat-client--total-lines) t))
 		content)
 	(with-current-buffer buf
@@ -65,8 +65,8 @@
 	(decode-coding-string (cdr content) 'utf-8-dos)))
 
 (defun webchat-client--say(who content &optional host port)
-  (setq host (or host webchat-client-service-host))
-  (setq port (or port webchat-client-service-port))
+  (setq host (or host webchat-client-server-host))
+  (setq port (or port webchat-client-server-port))
   (let ((url (format "http://%s:%s/update/"
 					 host
 					 port))
@@ -114,6 +114,8 @@
   "输入聊天内容的buffer")
 (defun webchat-talk ()
   (interactive)
+  (setq webchat-client-server-host (read-string "请输入服务器地址: " webchat-client-server-host))
+  (setq webchat-client-server-port (read-number "请输入服务端口: " webchat-client-server-port))
   (setq webchat-client-who (read-string "请输入你的名称: " webchat-client-who))
   (switch-to-buffer (get-buffer-create webchat-client-content-buffer))
   (select-window (split-window-below -4))
