@@ -67,19 +67,16 @@
 (defun webchat-client--say(who content &optional host port)
   (setq host (or host webchat-client-service-host))
   (setq port (or port webchat-client-service-port))
-  (let ((buf (url-retrieve-synchronously
-			  (format "http://%s:%s/update/?who=%s&content=%s"
-					  host
-					  port
-					  (url-hexify-string who)
-					  (url-hexify-string content)) t))
-		content)
-	(with-current-buffer buf
-	  (goto-char (point-min))
-	  (search-forward-regexp "^$")
-	  (setq content (buffer-substring-no-properties (+ (point )1) (point-max))))
-	(kill-buffer buf)
-	content))
+  (url-retrieve
+   (format "http://%s:%s/update/?who=%s&content=%s"
+		   host
+		   port
+		   (url-hexify-string who)
+		   (url-hexify-string content))
+   (lambda (status)
+	 (kill-buffer (current-buffer)))
+   nil
+   t))
 (defvar webchat-client-content-buffer "*webchat-content*"
   "显示聊天内容的buffer")
 (defun webchat-client--display-content()
