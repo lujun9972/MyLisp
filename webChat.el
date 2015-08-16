@@ -8,22 +8,26 @@
   "聊天内容")
 (defun webchat-server--get-content-start-from (start)
   "根据请求的起始行,产生实际应该返回的内容"
-  (let ((new-content-lines (- webchat-server--total-lines start))
-		(new-content-list (subseq (ring-elements webchat-server--content-ring) (- new-content-lines))))
+  (let* ((new-content-lines (- webchat-server--total-lines start))
+		 (new-content-list (cond ((= new-content-lines 0)
+								  nil)
+								 (t (subseq (ring-elements webchat-server--content-ring) (- new-content-lines))))))
 	(apply #'concat new-content-list)))
 
 (defun webchat-server--get-content-handler (httpcon)
-  (let* ((start (elnode-http-param httpcon "start"))
+  (let* ((start (string-to-number (or (elnode-http-param httpcon "start") "0")))
 		 (new-content (webchat-server--get-content-start-from start)))
 	(elnode-http-start httpcon 200 '("Content-Type" . "text/plain"))
-	(elnode-http-return httpcon new-content)))
+	(elnode-http-return httpcon (prin1-to-string (cons webchat-server--total-lines new-content)))))
 
 (defun webchat-server--say-handler (httpcon)
   (let ((who (elnode-http-param httpcon "who"))
 		(content (elnode-http-param httpcon "content")))
-	(if (stringp content)
-		(ring-insert-at-beginning webchat-server--content-ring (format "%s:\n\t%s\n" who content))))
-  (elnode-http-start httpcon 302 '("Location" . "/"))
+	(when (stringp content)
+	  (ring-insert-at-beginning webchat-server--content-ring (format "%s:\n\t%s\n" who content))
+	  (incf webchat-server--total-lines)))
+  (elnode-http-start httpcon 200 '("Content-Type" . "text/plain"))
+  ;; (elnode-http-start httpcon 302 '("Location" . "/"))
   (elnode-http-return httpcon))
 
 (defconst webchat-urls
@@ -45,17 +49,20 @@
   "webchat的服务器地址")
 (defvar webchat-client-service-port 8000
   "webchat的服务器监听端口")
+(defvar webchat-client--total-lines 0
+  "webchat客户端已经收到多少行聊天记录")
 (defun webchat-client--get-content(&optional host port)
   (setq host (or host webchat-client-service-host))
   (setq port (or port webchat-client-service-port))
-  (let ((buf (url-retrieve-synchronously (format "http://%s:%s/" host port)))
+  (let ((buf (url-retrieve-synchronously (format "http://%s:%s/?start=%s" host port webchat-client--total-lines)))
 		content)
 	(with-current-buffer buf
 	  (goto-char (point-min))
 	  (search-forward-regexp "^$")
-	  (setq content (buffer-substring-no-properties (+ (point )1) (point-max))))
+	  (setq content (read-from-whole-string (buffer-substring-no-properties (+ (point )1) (point-max)))))
 	(kill-buffer buf)
-	(decode-coding-string content 'utf-8-dos)))
+	(setq webchat-client--total-lines (car content))
+	(decode-coding-string (cdr content) 'utf-8-dos)))
 
 (defun webchat-client--say(who content &optional host port)
   (setq host (or host webchat-client-service-host))
@@ -81,22 +88,13 @@
 		(cb (current-buffer)))
 	(save-excursion 
 	  (select-or-create-buffer-window (get-buffer-create webchat-client-buffer))
-	  ;; (goto-char (point-max))
-	  ;; (insert (substring content (point)))
-	  (erase-buffer)
+	  (goto-char (point-max))
 	  (insert content)
+	  ;; (erase-buffer)
+	  ;; (insert content)
 	  )
 	(select-or-create-buffer-window cb)))
 
-;; (defun webchat-talk()
-;;   (interactive)
-;;   (let* ((who (read-string "请输入你的名称: "))
-;; 		 (content (format "%s进入了聊天室" who))
-;; 		 (get-content-timer (run-with-idle-timer 1 t #'webchat-client--display-content)))
-;; 	(unless (string= content "")
-;; 	  (webchat-client--say who content)
-;; 	  (setq content (read-string ": ")))
-;; 	(cancel-timer get-content-timer)))
 
 (define-derived-mode webchat-mode text-mode "WebChat"
   "Major mode for running webchat"
