@@ -80,19 +80,16 @@
 	  (setq content (buffer-substring-no-properties (+ (point )1) (point-max))))
 	(kill-buffer buf)
 	content))
-(defvar webchat-client-buffer "*webchat*"
+(defvar webchat-client-content-buffer "*webchat-content*"
   "显示聊天内容的buffer")
 (defun webchat-client--display-content()
   "在buffer内显示聊天内容"
   (let ((content (webchat-client--get-content))
 		(cb (current-buffer)))
 	(save-excursion 
-	  (select-or-create-buffer-window (get-buffer-create webchat-client-buffer))
+	  (select-or-create-buffer-window (get-buffer-create webchat-client-content-buffer))
 	  (goto-char (point-max))
-	  (insert content)
-	  ;; (erase-buffer)
-	  ;; (insert content)
-	  )
+	  (insert content))
 	(select-or-create-buffer-window cb)))
 
 
@@ -112,15 +109,20 @@
 	(erase-buffer)))
 
 (defvar webchat-client--timer nil)
+(defvar webchat-client-talk-buffer "*webchat-talk*"
+  "输入聊天内容的buffer")
 (defun webchat-talk ()
   (interactive)
   (setq webchat-client-who (read-string "请输入你的名称: " webchat-client-who))
-  ;; (setq webchat-client--timer (run-with-idle-timer 1 1 #'webchat-client--display-content))
-  (setq webchat-client--timer (run-with-timer 1 1 #'webchat-client--display-content))
-  (webchat-mode 1))
+  (switch-to-buffer (get-buffer-create webchat-client-content-buffer))
+  (select-window (split-window-below -4))
+  (switch-to-buffer (get-buffer-create webchat-client-talk-buffer))
+  (webchat-mode)
+  ;; (setq webchat-client--timer (run-with-idle-timer 1 0.3 #'webchat-client--display-content))
+  (setq webchat-client--timer (run-with-timer 1 0.3 #'webchat-client--display-content)))
 
 (defun webchat-quit ()
   (interactive)
   (cancel-timer webchat-client--timer)
-  (select-window (get-buffer-window webchat-client-buffer))
+  (select-window (get-buffer-window webchat-client-content-buffer))
   (kill-buffer-and-window))
