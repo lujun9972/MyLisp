@@ -1,16 +1,28 @@
 ;; 以下是server端代码
 (require 'elnode)
-(defvar webchat-content ""
+(defvar webchat-server--total-lines 0
+  "聊天室中总用有多少行内容")
+(defvar webchat-server-max-hold-lines 1000
+  "服务端最多保存多少行聊天内容")
+(defvar webchat-server--content-ring (make-ring webchat-server-max-hold-lines)
   "聊天内容")
+(defun webchat-server--get-content-start-from (start)
+  "根据请求的起始行,产生实际应该返回的内容"
+  (let ((new-content-lines (- webchat-server--total-lines start))
+		(new-content-list (subseq (ring-elements webchat-server--content-ring) (- new-content-lines))))
+	(apply #'concat new-content-list)))
+
 (defun webchat-server--get-content-handler (httpcon)
-  (elnode-http-start httpcon 200 '("Content-Type" . "text/plain"))
-  (elnode-http-return httpcon webchat-content))
+  (let* ((start (elnode-http-param httpcon "start"))
+		 (new-content (webchat-server--get-content-start-from start)))
+	(elnode-http-start httpcon 200 '("Content-Type" . "text/plain"))
+	(elnode-http-return httpcon new-content)))
 
 (defun webchat-server--say-handler (httpcon)
   (let ((who (elnode-http-param httpcon "who"))
 		(content (elnode-http-param httpcon "content")))
-	  (if (stringp content)
-		  (setq webchat-content (concat webchat-content (format "%s:\t%s\n" who content)))))
+	(if (stringp content)
+		(ring-insert-at-beginning webchat-server--content-ring (format "%s:\n\t%s\n" who content))))
   (elnode-http-start httpcon 302 '("Location" . "/"))
   (elnode-http-return httpcon))
 
@@ -49,16 +61,16 @@
   (setq host (or host webchat-client-service-host))
   (setq port (or port webchat-client-service-port))
   (let ((buf (url-retrieve-synchronously
-			   (format "http://%s:%s/update/?who=%s&content=%s"
-					   host
-					   port
-					   (url-hexify-string who)
-					   (url-hexify-string content))))
-		 content)
-	 (with-current-buffer buf
-	   (goto-char (point-min))
-	   (search-forward-regexp "^$")
-	   (setq content (buffer-substring-no-properties (+ (point )1) (point-max))))
+			  (format "http://%s:%s/update/?who=%s&content=%s"
+					  host
+					  port
+					  (url-hexify-string who)
+					  (url-hexify-string content))))
+		content)
+	(with-current-buffer buf
+	  (goto-char (point-min))
+	  (search-forward-regexp "^$")
+	  (setq content (buffer-substring-no-properties (+ (point )1) (point-max))))
 	(kill-buffer buf)
 	content))
 (defvar webchat-client-buffer "*webchat*"
