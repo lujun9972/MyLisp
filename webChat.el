@@ -84,12 +84,14 @@
 (defun webchat-client--display-content()
   "在buffer内显示聊天内容"
   (let ((content (webchat-client--get-content))
-		(cb (current-buffer)))
-	(save-excursion 
-	  (select-or-create-buffer-window (get-buffer-create webchat-client-content-buffer))
-	  (goto-char (point-max))
-	  (insert content))
-	(select-or-create-buffer-window cb)))
+		(webchat-client-content-window (get-buffer-window (get-buffer-create webchat-client-content-buffer))))
+	(save-selected-window
+	  (save-excursion 
+		(when webchat-client-content-window
+		  (select-window webchat-client-content-window))
+		(with-current-buffer webchat-client-content-buffer
+		  (goto-char (point-max))
+		  (insert content))))))
 
 
 (define-derived-mode webchat-mode text-mode "WebChat"
