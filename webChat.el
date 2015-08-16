@@ -126,3 +126,5 @@
   (cancel-timer webchat-client--timer)
   (select-window (get-buffer-window webchat-client-content-buffer))
   (kill-buffer-and-window))
+
+(provide 'webChat)
