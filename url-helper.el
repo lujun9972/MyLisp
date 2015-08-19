@@ -71,13 +71,12 @@
 		 '(("Content-Type" . "application/x-www-form-urlencoded")))
 		(url-request-data
 		 (mapconcat (lambda (arg)
-					  (concat (url-hexify-string (car arg))
+					  (concat (url-hexify-string (format "%s" (car arg)))
 							  "="
-							  (url-hexify-string (cdr arg))))
+							  (url-hexify-string (format "%s" (cdr arg)))))
 					args
 					"&")))
-	;; if you want, replace `my-switch-to-url-buffer' with `my-kill-url-buffer'
-	(url-retrieve url 'my-switch-to-url-buffer)))
+	(url-retrieve url 'url-kill-url-buffer)))
 
 (defun url-kill-url-buffer (status)
   "Kill the buffer returned by `url-retrieve'."
