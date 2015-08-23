@@ -43,8 +43,7 @@ re-downloaded in order to locate PACKAGE."
   (interactive)
   (async-start
    `(lambda ()
-      (setq package-archives
-            ',package-archives)
+	  ,(async-inject-variables "^package-archives$")
       (require 'finder-inf nil t)
       ;; Initialize the package system if necessary.
       (package-initialize t)
@@ -87,8 +86,7 @@ re-downloaded in order to locate PACKAGE."
   (interactive "Swhich package do you want to install?")
   (async-start
    `(lambda ()
-      (setq package-archives
-            ',package-archives)
+	  ,(async-inject-variables "^package-archives$")
       ;; Initialize the package system if necessary.
       (package-initialize t)
 	  (package-install ',package))
