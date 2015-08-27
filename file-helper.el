@@ -25,14 +25,17 @@
 		(match-string 1 dir)
 	  dir)))
 
-(defun files-in-directory-with-subdir (dir &optional full match nosort)
-  "类似directory-files,但是会递归搜索子目录,且不返回目录"
+(defun files-in-directory-with-subdir (dir &optional pred full match nosort)
+  "类似directory-files,但是会递归搜索子目录,且返回的是符合`pred'判断的文件,`pred'默认为除了.和..之外的所有文件"
+  (unless pred
+	(setq pred (lambda (file)
+				 (not (string-match-p "/\\..*$" file)))))
   (when (file-directory-p dir)
-	(let* ((files (remove-if #'file-directory-p (directory-files dir t match)))
+	(let* ((files (remove-if-not pred (directory-files dir t match t)))
 		   (dirs (remove-if (lambda (dir)
 						   (string-match-p "/\\..*$" dir)) (remove-if-not #'file-directory-p (directory-files dir t)))))
 	  (setq files (append files (mapcan (lambda (dir)
-										  (files-in-directory-with-subdir dir t match)) dirs)))
+										  (files-in-directory-with-subdir dir pred t match t)) dirs)))
 	  (unless full
 	  	(setq files (mapcar (lambda (file)
 							  (file-relative-name file dir))
