@@ -1,8 +1,18 @@
+(defun url-get-content-from-url(url)
+  "获取 `url'的内容"
+  (let ((url-buffer (url-retrieve-synchronously url))
+		url-content)
+	(with-current-buffer url-buffer
+	  (goto-char (point-min))
+	  (search-forward-regexp "^$")
+	  (setq url-content (buffer-substring-no-properties (+ (point) 1) (point-max))))
+	(kill-buffer url-buffer)
+	url-content))
+
 (defun url-get-content-from-html-async (url)
   ""
   (url-retrieve url (lambda (status)
 					  (setq url-content (libxml-parse-xml-region (point-min) (point-max))))))
-
 (defun url-get-content-from-html(url)
   "从http `url'中获取经过`libxml-parse-html-region'解析的内容"
   (let ((url-buffer (url-retrieve-synchronously url))
