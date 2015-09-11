@@ -120,6 +120,24 @@
 	  (delete-process p1)
 	  t)))
 
+(defun make-lispy-network-process (&rest args)
+  "类似`make-network-process'但使用lisp object作为传输对象
+
+filter function的函数签名应该为(process &rest objs)
+该函数会使用process的'output property临时存放收到的字符串"
+  (let ((p (apply #'make-network-process args)))
+	(lexical-let* ((ori-filter-fn (process-filter p)))
+	  (set-process-filter p
+						  (lambda (process msg)
+							(let ((content (process-get process 'output))
+								  result obj)
+							  (setq content (concat content msg))
+							  (while (setq result (ignore-errors (read-from-string content)))
+								(setq content (substring content (cdr result)))
+								(setq obj (car result))
+								(apply ori-filter-fn process obj))
+							  (process-put process 'output content)))))
+	p))
 
 (provide 'process-helper)
 
