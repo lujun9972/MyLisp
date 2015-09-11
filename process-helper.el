@@ -145,6 +145,23 @@ filter function的函数签名应该为(process &rest objs)
   "类似`process-send-string' 但发送的是lisp object"
   (process-send-string process (prin1-to-string objs)))
 
+(defun set-lispy-process-filter (process filter &optional store-msg-property)
+  "类似`set-filter-filter' 但是`filter'的函数参数应该为(process &rest objs)
+该函数会使用process的'output property临时存放收到的字符串,可以通过参数store-msg-property来设置存储在哪个property"
+  (lexical-let* ((ori-filter-fn filter)
+				 (store-msg-property (or  store-msg-property
+										  'output)))
+	(set-process-filter process
+						(lambda (process msg)
+						  (let ((content (process-get process store-msg-property))
+								result obj)
+							(setq content (concat content msg))
+							(while (setq result (ignore-errors (read-from-string content)))
+							  (setq content (substring content (cdr result)))
+							  (setq obj (car result))
+							  (apply ori-filter-fn process obj))
+							(process-put process store-msg-property content))))))
+
 (provide 'process-helper)
 
 
