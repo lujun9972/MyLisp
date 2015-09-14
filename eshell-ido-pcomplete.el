@@ -1,4 +1,11 @@
+;;; eshell-ido-pcomplete.el --- use ido as eshell completion
+
+;;; Commentary:
+;; 
+
 (require 'eshell)
+
+;;; Code:
 
 (defun eshell-ido-pcomplete--input-lisp-p()
   "判断eshell的输入是否为lisp
@@ -37,7 +44,7 @@
 		  nil)))))
 
 (defun eshell-ido-pcomplete--special-form-or-function-p (object)
-  "判断object是function或special-form"
+  "判断OBJECT是function或special-form."
   (or (functionp object)
 	  (special-form-p object)))
 
@@ -61,7 +68,7 @@
 		  (t (pcomplete-completions)))))
 
 (defun eshell-ido-pcomplete ()
-  "使用ido作为eshell的pcomplete方法"
+  "使用ido作为eshell的pcomplete方法."
   (interactive)
   ;; @ To simplify completion function logic, the tag `pcompleted' may be thrown with a value of nil in order to abort the function.  It means that there were no completions available.
   (catch 'pcompleted
@@ -82,3 +89,5 @@
   (define-key eshell-mode-map (kbd "<tab>") 'eshell-ido-pcomplete))
 
 (provide 'eshell-ido-pcomplete)
+
+;;; eshell-ido-pcomplete.el ends here
