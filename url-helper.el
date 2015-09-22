@@ -5,7 +5,8 @@
 	(with-current-buffer url-buffer
 	  (goto-char (point-min))
 	  (search-forward-regexp "^$")
-	  (setq url-content (buffer-substring-no-properties (+ (point) 1) (point-max))))
+	  (unless (= (point) (point-max))
+		(setq url-content (buffer-substring-no-properties (+ (point) 1) (point-max)))))
 	(kill-buffer url-buffer)
 	url-content))
 
