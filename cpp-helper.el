@@ -111,4 +111,58 @@
 	(setq arg-names (mapcar #'car args))
 	(insert (format cpp-insert-trace-format (cpp-get-trace-from-function-arg arg-names)))))
 
+(defun cpp-copy-backward-block ()
+  "拷贝光标前的block"
+  (interactive)
+  (let ((c (char-before))
+		(close-pos (point))
+		open-pos)
+	(when (find c  ")]}")
+	  (save-excursion
+		(backward-list)
+		(setq open-pos (point)))
+	  (c-newline-and-indent)
+	  (insert (buffer-substring open-pos close-pos)))))
+
+(defun cpp-copy-forward-block ()
+  "拷贝光标后的block"
+  (interactive)
+  (let ((c (char-after))
+		(open-pos (point))
+		close-pos)
+	(when (find c  "([{")
+	  (save-excursion
+		(forward-list)
+		(setq close-pos (+ 1 (point))))
+	  (insert (buffer-substring open-pos close-pos))
+	  (c-newline-and-indent))))
+
+
+(defvar cpp-helper-mode-map (make-sparse-keymap))
+
+(define-minor-mode cpp-helper-mode
+  "Minor mode to help write c like code. like lispy-mode
+
+When `cpp-helper-mode' is on, most unprefixed keys,
+i.e. [a-zA-Z+-./<>], conditionally call commands instead of
+self-inserting. The condition (called special further on) is one
+of:
+
+- the point is before \"(\"
+- the point is after \")\"
+- the region is active
+
+For instance, when special, \"j\" moves down one sexp, otherwise
+it inserts itself.
+
+When special, [0-9] call `digit-argument'.
+
+When `cpp-helper-mode' is on, \"[\" and \"]\" move forward and
+backward through lists, which is useful to move into special.
+
+\\{cpp-helper-mode-map}"
+  :keymap cpp-helper-mode-map
+  :group 'lispy
+  :lighter " LY")
+
 (provide 'cpp-helper)
