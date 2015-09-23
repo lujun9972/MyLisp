@@ -318,4 +318,30 @@ trec的第一个参数应当是一个具有三个参数的函数，三个参数�
 			   result
 			 (rfind-if predicate (cdr tree)))))))
 
+;; 惰性求值
+(defconst unforced (gensym)
+  "delay对象尚未求值的标志")
+
+(defstruct delay						;定义delay结构体,其由两个部分组成
+  forced								;forced代表该delay结构体是否已经求值,若求过值,则直接使用该值
+  closure)								;closure为一个闭包,调用它就能得到该delay所代表的值
+
+(defmacro delay (expr)
+  "使用该宏,将`expr'封装成一个惰性求值对象"
+  (lexical-let ((self (gensym)))
+	`(lexical-let ((,self (make-delay :forced unforced)))
+	   (setf (delay-closure ,self)
+			 #'(lambda ()
+				 (setf (delay-forced ,self) ,expr)))
+	   ,self)))
+
+(defun force (x)
+  "对delay对象求值
+若x不是delay对象则直接返回x,否则返回其表示的值"
+  (if (delay-p x)
+	  (if (eq (delay-forced x) unforced)
+		  (funcall (delay-closure x))
+		(delay-forced x))
+	x))
+
 (provide 'elisp-helper)
