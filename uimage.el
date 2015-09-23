@@ -22,21 +22,28 @@
 
 ;;; Commentary:
 
-;; Uimage is a minor mode that displays images, when image-filename 
-;; could be fetched via url.
+;; Uimage is a iimange like minor mode that displays images, when image-data 
+;; could be retrived from url.
 ;;
 ;; ** Display images in *Info* buffer.
 ;;
 ;; (add-hook 'info-mode-hook 'uimage-mode)
 ;;
 ;; .texinfo:   @file{file://foo.png}
+;; .texinfo:   @file{http://xxx.com/foo.png}
+;; .texinfo:   @file{https://xxx.com/foo.png}
 ;; .info:      `file://foo.png'
+;; .info:      `http://xxx.com/foo.png'
+;; .info:      `https://xxx.com/foo.png'
 ;;
 ;; ** Display images in Wiki buffer.
 ;;
 ;; (add-hook 'wiki-mode-hook 'uimage-mode)
 ;;
 ;; wiki-file:   [[file://foo.png]]
+;; wiki-file:   [[http://xxx.com/foo.png]]
+;; wiki-file:   [[https://xxx.com/foo.png]]
+
 
 ;;; Code:
 
@@ -58,7 +65,7 @@
 		      t)))
 ;; (setq uimage-mode-image-regex-alist
 ;;   `((,(concat "\\(`\\|\\[\\[\\|<)\\)?"
-;; 	      "\\(\\(file://\\|ftp://\\|http://\\|https://\\)" uimage-mode-image-filename-regex "\\)"
+;; 	      "\\(\\(file:\\|ftp://\\|http://\\|https://\\)" uimage-mode-image-filename-regex "\\)"
 ;; 	      "\\(\\]\\]\\|>\\|'\\)?") . 2)))
 
 (defcustom uimage-mode-image-regex-alist
@@ -130,28 +137,31 @@ Examples of image filename patterns to match:
 
 (defun uimage-mode-buffer (arg)
   "Display images if ARG is non-nil, undisplay them otherwise."
-  (let (url url-type)
+  (let (url url-type url-readable-p)
     (with-silent-modifications
       (save-excursion
         (goto-char (point-min))
         (dolist (pair uimage-mode-image-regex-alist)
           (while (re-search-forward (car pair) nil t)
 			(setq url (match-string (cdr pair)))
-			(setq url-type (url-type (url-generic-parse-url url)))
             
 			;; FIXME: we don't mark our images, so we can't reliably
 			;; remove them either (we may leave some of ours, and we
 			;; may remove other packages's display properties).
 			(if arg
-				(when (cond ((equal url-type "ftp")
-							 (url-ftp-file-readable-p url))
-							((equal url-type "file")
-							 (url-file-file-readable-p url))
-							((equal url-type "http")
-							 (url-http-file-readable-p url))
-							((equal url-type "https")
-							 (url-https-file-readable-p url)))
-				  (url-retrieve url #'uimage-display-inline-images-callback `(,(match-beginning 0) ,(match-end 0) nil ,(current-buffer))))
+				(progn
+				  (save-match-data
+					(setq url-type (url-type (url-generic-parse-url url)))
+					(setq file-readable-p (cond ((equal url-type "ftp")
+												 (url-ftp-file-readable-p url))
+												((equal url-type "file")
+												 (url-file-file-readable-p url))
+												((equal url-type "http")
+												 (url-http-file-readable-p url))
+												((equal url-type "https")
+												 (url-https-file-readable-p url)))))
+				  (when file-readable-p
+					(url-retrieve url #'uimage-display-inline-images-callback `(,(match-beginning 0) ,(match-end 0) nil ,(current-buffer)))))
 			  (remove-text-properties (match-beginning 0) (match-end 0)
 									  '(display modification-hooks)))))))))
 
@@ -160,6 +170,6 @@ Examples of image filename patterns to match:
   :group 'uimage :lighter " uImg" :keymap uimage-mode-map
   (uimage-mode-buffer uimage-mode))
 
-(provide 'uimage-extend)
+(provide 'uimage)
 
 ;;; uimage.el ends here
