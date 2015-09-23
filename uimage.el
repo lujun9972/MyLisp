@@ -36,7 +36,7 @@
 ;;
 ;; (add-hook 'wiki-mode-hook 'uimage-mode)
 ;;
-;; wiki-file:   [[foo.png]]
+;; wiki-file:   [[file://foo.png]]
 
 ;;; Code:
 
@@ -51,14 +51,18 @@
 
 
 (defvar uimage-mode-image-filename-regex
-  (concat "[-+./_0-9a-zA-Z]+\\."
+  (concat "[-+./_0-9a-zA-Z:]+\\."
 	  (regexp-opt (nconc (mapcar #'upcase
 				     image-file-name-extensions)
 			     image-file-name-extensions)
 		      t)))
+;; (setq uimage-mode-image-regex-alist
+;;   `((,(concat "\\(`\\|\\[\\[\\|<)\\)?"
+;; 	      "\\(\\(file://\\|ftp://\\|http://\\|https://\\)" uimage-mode-image-filename-regex "\\)"
+;; 	      "\\(\\]\\]\\|>\\|'\\)?") . 2)))
 
 (defcustom uimage-mode-image-regex-alist
-  `((,(concat "\\(`\\|\\[\\[\\|<)?"
+  `((,(concat "\\(`\\|\\[\\[\\|<)\\)?"
 	      "\\(\\(file://\\|ftp://\\|http://\\|https://\\)" uimage-mode-image-filename-regex "\\)"
 	      "\\(\\]\\]\\|>\\|'\\)?") . 2))
   "Alist of filename REGEXP vs NUM.
@@ -68,9 +72,8 @@ NUM specifies which parenthesized expression in the regexp.
 Examples of image filename patterns to match:
     file://foo.png
     `file://foo.png'
-    \\[\\[foo.gif]]
-    <foo.png>
-     foo.JPG
+    \\[\\[file://foo.gif]]
+    <file://foo.png>
 "
   :type '(alist :key-type regexp :value-type integer)
   :group 'uimage)
@@ -127,8 +130,7 @@ Examples of image filename patterns to match:
 
 (defun uimage-mode-buffer (arg)
   "Display images if ARG is non-nil, undisplay them otherwise."
-  (let ((image-path (cons default-directory uimage-mode-image-search-path))
-	url url-type)
+  (let (url url-type)
     (with-silent-modifications
       (save-excursion
         (goto-char (point-min))
