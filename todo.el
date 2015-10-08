@@ -23,7 +23,12 @@
 
 (defun todo (cmd &rest args)
   "The main function"
-  (apply (intern (format "todo-%s" (downcase cmd))) args))
+  (apply (intern (format "todo-%s" (downcase cmd)))
+		 (mapcar (lambda (arg)
+				   (cond ((string-prefix-p ":" arg)
+						  (intern arg))
+						 (t
+						  arg))) args)))
 
 
 ;; todo add task-description
@@ -106,5 +111,7 @@
   (todo--with-task id
 	  (append (car (task-doing-periods THE-TASK)) (current-time-string))))
 
+;; todo save
+;; todo load
 ;; todo pull server user pwd
 ;; todo push server
