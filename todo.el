@@ -1,12 +1,15 @@
 (require 'cl)
 
+(defgroup el-todo nil
+  "a todo command line tool used in eshell")
+
 (defvar *todo-tasks* nil
   "任务列表")
 
-(defvar todo--default-task-pri 5
+(defcustom todo--default-task-pri 5
   "任务默认优先级")
 
-(defun todo--gen-task-id ()
+(cl-defun todo--gen-task-id ()
   "generate a new task-id"
   (gensym))
 
@@ -21,7 +24,7 @@
   (done-time nil)
   (doing-periods nil))
 
-(defun todo (cmd &rest args)
+(cl-defun todo (cmd &rest args)
   "The main function"
   (apply (intern (format "todo-%s" (downcase cmd)))
 		 (mapcar (lambda (arg)
@@ -32,7 +35,6 @@
 
 
 ;; todo add task-description
-
 (cl-defun todo-add (description &key pri tags sd dl)
   "add a new task"
   (push (make-task :desc description
@@ -112,6 +114,21 @@
 	  (append (car (task-doing-periods THE-TASK)) (current-time-string))))
 
 ;; todo save
+(defcustom todo-save-file "todo-file.save"
+  "the file used to save tasks")
+
+(cl-defun todo-save ()
+  "save todo tasks"
+  (with-temp-file todo-save-file
+	(insert (prin1 *todo-tasks*))))
+
 ;; todo load
+(cl-defun todo-load ()
+  "load todo tasks"
+  (with-temp-buffer
+	(insert-file-contents todo-save-file)
+	(setq *todo-tasks* (read-from-whole-string (buffer-string)))))
+
 ;; todo pull server user pwd
+
 ;; todo push server
