@@ -1,4 +1,5 @@
 (require 'cl)
+(require 'subr-x)
 
 (defgroup el-todo nil
   "a todo command line tool used in eshell")
@@ -66,7 +67,7 @@
 	tasks))
 
 (cl-defun todo--show-task (task)
-  (message "%s: %s :pri %s :tags %s"
+   (message "%s: %s :pri %s :tags %s"
 		   (task-id task)
 		   (task-desc task)
 		   (task-pri task)
@@ -75,7 +76,7 @@
 (cl-defun todo-show (&key desc pri tag)
   "filter and list tasks"
   (let ((tasks (todo--filter :desc desc :pri pri :tag tag)))
-	(mapc #'todo--show-task tasks)))
+	(string-join (mapcar #'todo--show-task tasks) "\n")))
 
 ;; todo edit task-id task-description
 (cl-defun todo--find-task-by-id (id)
