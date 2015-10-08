@@ -29,10 +29,14 @@
   "The main function"
   (apply (intern (format "todo-%s" (downcase cmd)))
 		 (mapcar (lambda (arg)
-				   (cond ((string-prefix-p ":" arg)
-						  (intern arg))
-						 (t
-						  arg))) args)))
+				   (if (stringp arg)
+					   (cond ((string-prefix-p ":" arg)
+							  (intern arg))
+							 ((string-match-p "^[[:digit:]]+$" arg)
+							  (string-to-number arg))
+							 (t
+							  arg))
+					 arg)) args)))
 
 
 ;; todo add task-description
@@ -58,7 +62,7 @@
 								 tasks)))
 	(when pri
 	  (setq tasks (remove-if-not (lambda (task)
-								   (< pri (task-pri task)))
+								   (<= pri (task-pri task)))
 								 tasks)))
 	(when tag
 	  (setq tasks (remove-if-not (lambda (task)
