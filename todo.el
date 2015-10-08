@@ -1,5 +1,5 @@
-;; todo pull
-;; todo push
+;; todo pull server user pwd
+;; todo push server
 ;; todo show
 ;; todo add task-description
 ;; todo edit task-id task-description
