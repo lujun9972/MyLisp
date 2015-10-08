@@ -1,5 +1,5 @@
-;; todo register
-;; todo login
+;; todo pull
+;; todo push
 ;; todo show
 ;; todo add task-description
 ;; todo edit task-id task-description
