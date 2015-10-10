@@ -135,12 +135,10 @@
 (defun make-lispy-network-process (&rest args)
   "类似`make-network-process'但使用lisp object作为传输对象
 
-filter function的函数签名应该为(process &rest objs)
-该函数会使用process的'output property临时存放收到的字符串,可以通过参数:store-msg-property来设置存储在哪个property"
+filter function的函数签名应该为(process &rest objs) "
   (lexical-let* ((ori-filter-fn (or  (plist-get args :filter)
 									 #'lispy-process-default-filter))
-				 (store-msg-property (or  (plist-get args :store-msg-property)
-										  'output)))
+				 (store-msg-property (gensym)))
 	(plist-put args :filter
 			   (lambda (process msg)
 				 (let ((content (process-get process store-msg-property))
@@ -160,7 +158,7 @@ filter function的函数签名应该为(process &rest objs)
 (defun lispy-process-send-wait (process wait-flag &rest objs)
   "类似`lispy-process-send' 但会等待回应
 其中会设置process的'WAIT属性为`wait-flag. 并等待回应函数将'WAIT属性清为nil"
-  (process-put process 'WAIT 'wait-flag)
+  (process-put process 'WAIT wait-flag)
   (process-send-string process (prin1-to-string objs))
   (while (process-get process 'WAIT)
 	(accept-process-output process 0.05)))
@@ -192,12 +190,10 @@ filter function的函数签名应该为(process &rest objs)
 ;;   ""
 ;;   )
 
-(defun set-lispy-process-filter (process filter &optional store-msg-property)
-  "类似`set-filter-filter' 但是`filter'的函数参数应该为(process &rest objs)
-该函数会使用process的'output property临时存放收到的字符串,可以通过参数store-msg-property来设置存储在哪个property"
+(defun set-lispy-process-filter (process filter)
+  "类似`set-filter-filter' 但是`filter'的函数参数应该为(process &rest objs) "
   (lexical-let* ((ori-filter-fn filter)
-				 (store-msg-property (or  store-msg-property
-										  'output)))
+				 (store-msg-property (gensym)))
 	(set-process-filter process
 						(lambda (process msg)
 						  (let ((content (process-get process store-msg-property))
