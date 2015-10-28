@@ -284,6 +284,19 @@ lrec的第一个参数必须是一个接受两个参数的函数，一个参数�
 								(self (cdr tree)))))))
 	#'self))
 
+(cl-defun tree-collect-subtree-if (pred tree)
+  "收集tree中所有符合条件的子树"
+  (when tree
+	(cond ((atom tree)
+		   (when (funcall pred tree)
+			 (list tree)))
+		  ((funcall pred tree)
+		   (append (list tree)
+				   (tree-collect-subtree-if pred (car tree))
+				   (tree-collect-subtree-if pred (cdr tree))))
+		  (t (append (tree-collect-subtree-if pred (car tree))
+					 (tree-collect-subtree-if pred (cdr tree)))))))
+
 (cl-defun trec (rec &optional (base #'identiy))
   "trec是一个更通用的树结构递归操作函数的生成器, 这种函数生成器能让我们控制递归调用发生的时机，以及是否继续递归。
 trec的第一个参数应当是一个具有三个参数的函数，三个参数分别是: 当前的对象，以及两个递归调用。后两个参数将是用来表示对左子树和右子树进行递归的两个闭包。"
@@ -295,10 +308,10 @@ trec的第一个参数应当是一个具有三个参数的函数，三个参数�
 				   base)
 			   (funcall rec tree
 						#'(lambda ()
-							 (self (car tree)))
-						   #'(lambda ()
-								(if (cdr tree)
-									(self (cdr tree))))))))
+							(self (car tree)))
+						#'(lambda ()
+							(if (cdr tree)
+								(self (cdr tree))))))))
 	#'self))
 
 (defun rfind-if-1 (predicate tree)
