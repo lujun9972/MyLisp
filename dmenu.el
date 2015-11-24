@@ -18,15 +18,15 @@ Must be set before initializing Dmenu."
 	(dmenu-initialize))
   (unless dmenu--cache-executable-files
 	(dmenu--cache-executable-files))
-  (let* ((execute-file (ido-completing-read+ ": " dmenu--cache-executable-files nil 'confirm nil 'dmenu-history-list))
+  (let* ((execute-file (ido-completing-read+ ": " dmenu--cache-executable-files nil 'confirm nil 'dmenu--history-list))
 		 (args))
 	(when (= prefix 4)
 	  (setq args (read-string "请输入参数: "))
 	  (with-temp-buffer
 	  	(insert args)
 	  	(setq args (car (shell--parse-pcomplete-arguments)))))
-	(setq dmenu-history-list (remove execute-file dmenu-history-list))
-	(push execute-file dmenu-history-list)
+	(setq dmenu--history-list (remove execute-file dmenu--history-list))
+	(push execute-file dmenu--history-list)
 	(switch-to-buffer (apply #'make-comint execute-file execute-file nil args))))
 
 (defvar dmenu-initialized-p nil)
@@ -54,7 +54,7 @@ Must be set before initializing Dmenu."
           (insert-file-contents save-file)
 		  (ignore-errors
 			(setq dmenu--cache-executable-files (read (current-buffer)))
-			(setq dmenu-history-list (read (current-buffer)))))
+			(setq dmenu--history-list (read (current-buffer)))))
       (setq dmenu-history nil dmenu-data nil))))
 
 (defun dmenu-save-to-file ()
@@ -62,10 +62,10 @@ Must be set before initializing Dmenu."
   (dmenu-save-history)
   (with-temp-file (expand-file-name dmenu-save-file)
     (ido-pp 'dmenu--cache-executable-files)
-	(ido-pp 'dmenu-history-list)))
+	(ido-pp 'dmenu--history-list)))
 
 
-(defvar dmenu-history-list nil)
+(defvar dmenu--history-list nil)
 
 (defvar dmenu--cache-executable-files nil)
 
