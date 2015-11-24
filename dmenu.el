@@ -12,6 +12,12 @@ Must be set before initializing Dmenu."
   :type 'string
   :group 'dmenu)
 
+(defvar dmenu-initialized-p nil)
+
+(defvar dmenu--history-list nil)
+
+(defvar dmenu--cache-executable-files nil)
+
 (defun dmenu(&optional prefix)
   (interactive "p")
   (unless dmenu-initialized-p
@@ -28,8 +34,6 @@ Must be set before initializing Dmenu."
 	(setq dmenu--history-list (remove execute-file dmenu--history-list))
 	(push execute-file dmenu--history-list)
 	(switch-to-buffer (apply #'make-comint execute-file execute-file nil args))))
-
-(defvar dmenu-initialized-p nil)
 
 ;;;###autoload
 (defun dmenu-initialize ()
@@ -64,10 +68,6 @@ Must be set before initializing Dmenu."
     (ido-pp 'dmenu--cache-executable-files)
 	(ido-pp 'dmenu--history-list)))
 
-
-(defvar dmenu--history-list nil)
-
-(defvar dmenu--cache-executable-files nil)
 
 (defun dmenu--cache-executable-files()
   "cache executable files"
