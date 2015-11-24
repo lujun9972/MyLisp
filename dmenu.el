@@ -1,3 +1,32 @@
+;;; dmenu.el --- use ido to simulate the dmenu command line program
+
+;; Copyright (C) 2009-2014 Cornelius Mika and contributors
+;;
+;; Author: Cornelius Mika <cornelius.mika@gmail.com> and contributors
+;; URL: http://github.com/lujun9972/dmenu/
+;; Package-Requires: ((emacs "24"))
+;; Version: 0.1
+;; Keywords: convenience, usability
+
+;; This file is not part of GNU Emacs.
+
+;;; License:
+
+;; Licensed under the same terms as Emacs.
+
+;;; Commentary:
+
+;; Quick start:
+;; run (dmenu-initialize)
+;;
+;; Bind the following commands:
+;; dmenu
+;;
+;; For a detailed introduction see:
+;; http://github.com/lujun9972/dmenu/blob/master/README.org
+
+;;; Code:
+
 (require 'ido)
 (require 'cl)
 (defgroup dmenu nil
@@ -116,3 +145,5 @@ Set this to nil to disable fuzzy matching."
 	(setq dmenu--update-timer (run-with-idle-timer idle-time t #'dmenu--cache-executable-files))))
 
 (provide 'dmenu)
+
+;;; dmenu.el ends here
