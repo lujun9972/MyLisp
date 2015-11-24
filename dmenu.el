@@ -26,8 +26,16 @@ Must be set before initializing Dmenu."
 	(dmenu-initialize))
   (unless dmenu--cache-executable-files
 	(dmenu--cache-executable-files))
-  (let* ((execute-file (ido-completing-read+ ": " (append dmenu--history-list dmenu--cache-executable-files) nil 'confirm nil 'dmenu--history-list))
-		 (args))
+  (let* ((execute-file (ido-completing-read+ ": "
+											 (append dmenu--history-list
+													 (remove-if (lambda (x)
+																  (member x dmenu--history-list))
+																dmenu--cache-executable-files))
+											 nil
+											 'confirm
+											 nil
+											 'dmenu--history-list))
+		 args)
 	(when (= prefix 4)
 	  (setq args (read-string "请输入参数: "))
 	  (with-temp-buffer
