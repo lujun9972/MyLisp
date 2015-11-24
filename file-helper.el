@@ -44,6 +44,15 @@
 		(setq files (sort files #'string<)))
 	  files)))
 
+(defun open-current-file-in-clean-emacs ()
+  ""
+  (interactive)
+  (let ((emacs-bin-path (concat invocation-directory invocation-name))
+        (file (buffer-file-name)))
+    (if file
+        (start-process file nil emacs-bin-path "-Q" file)
+      (error "当前buffer没有对应的file"))))
+
 ;; 以下函数摘自李杀网
 (defun fullpath-relative-to-current-file (file-relative-path)
   "Returns the full path of FILE-RELATIVE-PATH, relative to file location where this function is called.
@@ -113,5 +122,7 @@ interactively by “eval-buffer”."
 	(let ((process-connection-type nil)) (start-process "" nil "xdg-open" "."))
 	;; (shell-command "xdg-open .") ;; 2013-02-10 this sometimes froze emacs till the folder is closed. ⁖ with nautilus
 	) ))
+
+
 
 (provide 'file-helper)

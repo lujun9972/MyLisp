@@ -79,7 +79,8 @@
   "Send ARGS to URL as a POST request."
   (let ((url-request-method "POST")
 		(url-request-extra-headers
-		 '(("Content-Type" . "application/x-www-form-urlencoded")))
+		 (cons '("Content-Type" . "application/x-www-form-urlencoded")
+               url-request-extra-headers))
 		(url-request-data
 		 (mapconcat (lambda (arg)
 					  (concat (url-hexify-string (format "%s" (car arg)))
