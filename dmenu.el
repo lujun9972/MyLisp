@@ -11,26 +11,6 @@ Variables stored are: `dmenu-data', `dmenu-history'.
 Must be set before initializing Dmenu."
   :type 'string
   :group 'dmenu)
-(defvar dmenu-history-list nil)
-
-(defvar dmenu--cache-executable-files nil)
-
-(defun dmenu--cache-executable-files()
-  "缓存可执行文件列表"
-  (let* ((valid-exec-path (remove-if-not #'file-exists-p (remove-if-not #'stringp exec-path)))
-		 (files (mapcan (lambda (dir)
-						  (directory-files dir t nil nil)) valid-exec-path)))
-		 (setq dmenu--cache-executable-files (sort (mapcar #'file-name-nondirectory (remove-if #'file-directory-p (remove-if-not #'file-executable-p files))) #'string< ))))
-
-(defvar dmenu--update-timer nil)
-
-(defun dmenu-auto-update (&optional idle-time)
-  "Update dmenu when Emacs has been idle for IDLE-TIME."
-  (unless idle-time (setq idle-time 60))
-  (when dmenu--update-timer
-	(cancel-timer dmenu--update-timer))
-  (setq dmenu--update-timer (run-with-idle-timer idle-time t
-                       #'dmenu--cache-executable-files)))
 
 (defun dmenu(&optional prefix)
   (interactive "p")
@@ -82,5 +62,26 @@ Must be set before initializing Dmenu."
   (with-temp-file (expand-file-name dmenu-save-file)
     (ido-pp 'dmenu--cache-executable-files)))
 
+
+(defvar dmenu-history-list nil)
+
+(defvar dmenu--cache-executable-files nil)
+
+(defun dmenu--cache-executable-files()
+  "缓存可执行文件列表"
+  (let* ((valid-exec-path (remove-if-not #'file-exists-p (remove-if-not #'stringp exec-path)))
+		 (files (mapcan (lambda (dir)
+						  (directory-files dir t nil nil)) valid-exec-path)))
+		 (setq dmenu--cache-executable-files (sort (mapcar #'file-name-nondirectory (remove-if #'file-directory-p (remove-if-not #'file-executable-p files))) #'string< ))))
+
+(defvar dmenu--update-timer nil)
+
+(defun dmenu-auto-update (&optional idle-time)
+  "Update dmenu when Emacs has been idle for IDLE-TIME."
+  (unless idle-time (setq idle-time 60))
+  (when dmenu--update-timer
+	(cancel-timer dmenu--update-timer))
+  (setq dmenu--update-timer (run-with-idle-timer idle-time t
+                       #'dmenu--cache-executable-files)))
 
 (provide 'dmenu)
