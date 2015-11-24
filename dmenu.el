@@ -53,14 +53,16 @@ Must be set before initializing Dmenu."
         (with-temp-buffer
           (insert-file-contents save-file)
 		  (ignore-errors
-			(setq dmenu--cache-executable-files (read (current-buffer)))))
+			(setq dmenu--cache-executable-files (read (current-buffer)))
+			(setq dmenu-history-list (read (current-buffer)))))
       (setq dmenu-history nil dmenu-data nil))))
 
 (defun dmenu-save-to-file ()
   (interactive)
   (dmenu-save-history)
   (with-temp-file (expand-file-name dmenu-save-file)
-    (ido-pp 'dmenu--cache-executable-files)))
+    (ido-pp 'dmenu--cache-executable-files)
+	(ido-pp 'dmenu-history-list)))
 
 
 (defvar dmenu-history-list nil)
