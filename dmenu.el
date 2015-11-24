@@ -18,6 +18,7 @@ Must be set before initializing Dmenu."
 
 (defvar dmenu--cache-executable-files nil)
 
+;;;###autoload
 (defun dmenu(&optional prefix)
   (interactive "p")
   (unless dmenu-initialized-p
