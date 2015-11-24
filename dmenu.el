@@ -3,7 +3,7 @@
 ;; Copyright (C) 2009-2014 Cornelius Mika and contributors
 ;;
 ;; Author: Cornelius Mika <cornelius.mika@gmail.com> and contributors
-;; URL: http://github.com/lujun9972/dmenu/
+;; URL: http://github.com/lujun9972/el-dmenu/
 ;; Package-Requires: ((emacs "24"))
 ;; Version: 0.1
 ;; Keywords: convenience, usability
@@ -23,7 +23,7 @@
 ;; dmenu
 ;;
 ;; For a detailed introduction see:
-;; http://github.com/lujun9972/dmenu/blob/master/README.org
+;; http://github.com/lujun9972/el-dmenu/blob/master/README.org
 
 ;;; Code:
 
