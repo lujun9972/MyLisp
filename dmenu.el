@@ -22,12 +22,12 @@ Must be set before initializing Dmenu."
   "Enables Ido flex matching. On by default.
 Set this to nil to disable fuzzy matching."
   :type 'boolean
-  :group 'smex)
+  :group 'dmenu)
 
 (defcustom dmenu-history-size 7
   "Determines on how many recently executed commands dmenu should keep a record. "
   :type 'integer
-  :group 'smex)
+  :group 'dmenu)
 
 (defvar dmenu-initialized-p nil)
 
