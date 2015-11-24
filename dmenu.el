@@ -13,6 +13,11 @@ Must be set before initializing Dmenu."
   :type 'string
   :group 'dmenu)
 
+(defcustom dmenu-prompt-string ": "
+  "String to display in the dmenu prompt."
+  :type 'string
+  :group 'dmenu)
+
 (defvar dmenu-initialized-p nil)
 
 (defvar dmenu--history-list nil)
@@ -26,7 +31,7 @@ Must be set before initializing Dmenu."
 	(dmenu-initialize))
   (unless dmenu--cache-executable-files
 	(dmenu--cache-executable-files))
-  (let* ((execute-file (ido-completing-read+ ": "
+  (let* ((execute-file (ido-completing-read+ dmenu-prompt-string
 											 (append dmenu--history-list
 													 (remove-if (lambda (x)
 																  (member x dmenu--history-list))
@@ -86,7 +91,7 @@ Must be set before initializing Dmenu."
 		 (files (mapcan (lambda (dir)
 						  (directory-files dir t nil nil)) valid-exec-path))
 		 (executable-files (mapcar #'file-name-nondirectory (remove-if #'file-directory-p (remove-if-not #'file-executable-p files)))))
-	(setq dmenu--cache-executable-files (sort executable-files #'string< executable-files))))
+	(setq dmenu--cache-executable-files (sort executable-files #'string<))))
 
 (defvar dmenu--update-timer nil)
 
