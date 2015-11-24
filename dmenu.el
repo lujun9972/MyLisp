@@ -18,6 +18,12 @@ Must be set before initializing Dmenu."
   :type 'string
   :group 'dmenu)
 
+(defcustom dmenu-flex-matching t
+  "Enables Ido flex matching. On by default.
+Set this to nil to disable fuzzy matching."
+  :type 'boolean
+  :group 'smex)
+
 (defvar dmenu-initialized-p nil)
 
 (defvar dmenu--history-list nil)
@@ -31,7 +37,8 @@ Must be set before initializing Dmenu."
 	(dmenu-initialize))
   (unless dmenu--cache-executable-files
 	(dmenu--cache-executable-files))
-  (let* ((execute-file (ido-completing-read+ dmenu-prompt-string
+  (let* ((ido-enable-flex-matching dmenu-flex-matching)
+		 (execute-file (ido-completing-read+ dmenu-prompt-string
 											 (append dmenu--history-list
 													 (remove-if (lambda (x)
 																  (member x dmenu--history-list))
