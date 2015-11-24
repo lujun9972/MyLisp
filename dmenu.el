@@ -24,6 +24,11 @@ Set this to nil to disable fuzzy matching."
   :type 'boolean
   :group 'smex)
 
+(defcustom dmenu-history-size 7
+  "Determines on how many recently executed commands dmenu should keep a record. "
+  :type 'integer
+  :group 'smex)
+
 (defvar dmenu-initialized-p nil)
 
 (defvar dmenu--history-list nil)
@@ -53,8 +58,9 @@ Set this to nil to disable fuzzy matching."
 	  (with-temp-buffer
 	  	(insert args)
 	  	(setq args (car (shell--parse-pcomplete-arguments)))))
-	(setq dmenu--history-list (remove execute-file dmenu--history-list))
-	(push execute-file dmenu--history-list)
+	(setq dmenu--history-list (cons execute-file (remove execute-file dmenu--history-list)))
+	(when (> (length dmenu--history-list) dmenu-history-size)
+	  (setcdr (nthcdr (- dmenu-history-size 1) dmenu--history-list) nil))
 	(switch-to-buffer (apply #'make-comint execute-file execute-file nil args))))
 
 ;;;###autoload
