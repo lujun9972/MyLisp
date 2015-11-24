@@ -8,7 +8,7 @@
 
 (defcustom dmenu-save-file (locate-user-emacs-file "dmenu-items")
   "File in which the dmenu state is saved between Emacs sessions.
-Variables stored are: `dmenu-data', `dmenu-history'.
+Variables stored are: `dmenu--cache-executable-files', `dmenu--history-list'.
 Must be set before initializing Dmenu."
   :type 'string
   :group 'dmenu)
@@ -37,7 +37,7 @@ Must be set before initializing Dmenu."
 											 'dmenu--history-list))
 		 args)
 	(when (= prefix 4)
-	  (setq args (read-string "请输入参数: "))
+	  (setq args (read-string "please input the parameters: "))
 	  (with-temp-buffer
 	  	(insert args)
 	  	(setq args (car (shell--parse-pcomplete-arguments)))))
@@ -61,7 +61,7 @@ Must be set before initializing Dmenu."
 
 
 (defun dmenu-load-save-file ()
-  "Loads `dmenu-history' and `dmenu-data' from `dmenu-save-file'"
+  "Loads `dmenu--history-list' and `dmenu--cache-executable-files' from `dmenu-save-file'"
   (let ((save-file (expand-file-name dmenu-save-file)))
     (if (file-readable-p save-file)
         (with-temp-buffer
@@ -72,6 +72,7 @@ Must be set before initializing Dmenu."
       (setq dmenu-history nil dmenu-data nil))))
 
 (defun dmenu-save-to-file ()
+  "Saves `dmenu--history-list' and `dmenu--cache-executable-files' to `dmenu-save-file'"
   (interactive)
   (dmenu-save-history)
   (with-temp-file (expand-file-name dmenu-save-file)
