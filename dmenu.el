@@ -1,4 +1,5 @@
 (require 'ido)
+(require 'cl)
 (defgroup dmenu nil
   "M-x interface with Ido-style fuzzy matching and ranking heuristics."
   :group 'extensions
@@ -25,7 +26,7 @@ Must be set before initializing Dmenu."
 	(dmenu-initialize))
   (unless dmenu--cache-executable-files
 	(dmenu--cache-executable-files))
-  (let* ((execute-file (ido-completing-read+ ": " dmenu--cache-executable-files nil 'confirm nil 'dmenu--history-list))
+  (let* ((execute-file (ido-completing-read+ ": " (append dmenu--history-list dmenu--cache-executable-files) nil 'confirm nil 'dmenu--history-list))
 		 (args))
 	(when (= prefix 4)
 	  (setq args (read-string "请输入参数: "))
@@ -76,7 +77,7 @@ Must be set before initializing Dmenu."
 		 (files (mapcan (lambda (dir)
 						  (directory-files dir t nil nil)) valid-exec-path))
 		 (executable-files (mapcar #'file-name-nondirectory (remove-if #'file-directory-p (remove-if-not #'file-executable-p files)))))
-		 (setq dmenu--cache-executable-files (sort #'string< executable-files))))
+	(setq dmenu--cache-executable-files (sort executable-files #'string< executable-files))))
 
 (defvar dmenu--update-timer nil)
 
