@@ -48,4 +48,30 @@
 	  (switch-to-buffer buf))
 	(select-window (get-buffer-window buf))))
 
+
+(defun fontify-block (start end &optional lang)
+  "Fontify code block."
+  (interactive "r")
+  (let* ((lang (or lang (read-string "which mode? ")))
+		 (lang-mode (intern (format "%s-mode" (replace-regexp-in-string "-mode$" "" lang)))))
+    (if (fboundp lang-mode)
+		(let ((string (buffer-substring-no-properties start end))
+			  (modified (buffer-modified-p))
+			  (origin-buffer (current-buffer)) pos next)
+		  (remove-text-properties start end '(face nil))
+		  (with-temp-buffer
+			(insert string " ") ;; so there's a final property change
+			(unless (eq major-mode lang-mode) (funcall lang-mode))
+			(font-lock-fontify-buffer)
+			(setq pos (point-min))
+			(while (setq next (next-single-property-change pos 'face))
+			  (put-text-property
+			   (+ start (1- pos)) (1- (+ start next)) 'face
+			   (get-text-property pos 'face) origin-buffer)
+			  (setq pos next)))
+		  ;; (add-text-properties
+		  ;;  start end
+		  ;;  '(font-lock-fontified t fontified t font-lock-multiline t))
+		  (set-buffer-modified-p modified)))))
+
 (provide 'buffer-helper)
