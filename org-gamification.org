@@ -1,7 +1,8 @@
+#+ORG2ISSUE-ISSUE: lujun9972 lujun9972.github.com 29
 #+TITLE: org-gamification
 #+AUTHOR: lujun9972
 #+OPTIONS: ^:{}
-* Org Gamification 												   :tag:game:
+* Org Gamification 
   游戏化是一个很火的概念,Org-mode是一个实现GTD的极好工具,将两者结合起来想必非常有趣. 
 
   下面就是一个简单的对Org-mode游戏化的尝试,主要就是通过完成任务赚取积分,用然后用积分购买奖励物品.

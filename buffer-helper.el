@@ -69,9 +69,9 @@
 			   (+ start (1- pos)) (1- (+ start next)) 'face
 			   (get-text-property pos 'face) origin-buffer)
 			  (setq pos next)))
-		  ;; (add-text-properties
-		  ;;  start end
-		  ;;  '(font-lock-fontified t fontified t font-lock-multiline t))
+		  (add-text-properties
+		   start end
+		   '(font-lock-fontified t fontified t font-lock-multiline t))
 		  (set-buffer-modified-p modified)))))
 
 (provide 'buffer-helper)

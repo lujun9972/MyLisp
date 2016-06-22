@@ -4,7 +4,7 @@
 			 l)
 	(or (consp (car l))
 		(alistp (cdr l)))))
-(alistp '(1 . 2))
+;; (alistp '(1 . 2))
 
 (defun assoc-tree (key alist)
   "嵌套查询alist"

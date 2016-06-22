@@ -19,7 +19,8 @@
   (let ((url-buffer (url-retrieve-synchronously url))
 		url-content)
 	(with-current-buffer url-buffer
-	  (setq url-content (libxml-parse-html-region (point-min) (point-max))))
+	  (search-forward-regexp "^$")
+	  (setq url-content (libxml-parse-html-region (point) (point-max))))
 	(kill-buffer url-buffer)
 	url-content))
 (defun url-get-thing-from-html(url tag &optional attr regexp)

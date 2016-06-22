@@ -53,6 +53,12 @@
         (start-process file nil emacs-bin-path "-Q" file)
       (error "当前buffer没有对应的file"))))
 
+(defun emacs ()
+  ""
+  (interactive)
+  (let ((emacs-bin-path (concat invocation-directory invocation-name)))
+    (start-process "emacs" nil emacs-bin-path )))
+
 ;; 以下函数摘自李杀网
 (defun fullpath-relative-to-current-file (file-relative-path)
   "Returns the full path of FILE-RELATIVE-PATH, relative to file location where this function is called.

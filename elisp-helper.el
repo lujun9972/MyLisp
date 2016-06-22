@@ -6,7 +6,7 @@
   (if (subrp fn)
 	  (subr-arity fn)
 	(require 'help)
-	(require 'cl)
+	(require 'cl-lib)
 	(let* ((fn-arglist (help-function-arglist fn))
 		   (min-arg (or (cl-position-if (lambda (x)
 										  (member x '(&optional &rest))) fn-arglist)
@@ -212,13 +212,13 @@
 
 (defun memoize (fn)
   "返回`fn'的带缓存功能的相应版本的函数"
-  (lexical-let ((cache (make-hash-table :test 'equal)))
-	(lambda (&rest args)
-	  (multiple-value-bind (val win) 
-		(if (assoc args (hash-table-keys cache))
-			(gethash args cache)
-		  (setf (gethash args cache)
-				(apply fn args)))))))
+  (let ((cache (make-hash-table :test 'equal)))
+    (lambda (&rest args)
+      (if (member args (hash-table-keys cache))
+          (gethash args cache)
+        (setf (gethash args cache)
+              (apply fn args))))))
+
 (defun compose-fns (&rest fns)
   "组合多个函数"
   (if fns
@@ -356,5 +356,19 @@ trec的第一个参数应当是一个具有三个参数的函数，三个参数�
 		  (funcall (delay-closure x))
 		(delay-forced x))
 	x))
+
+(defun thread-last-help-fn (&rest forms)
+  (if (= 1 (length forms))
+      forms
+    (append (car forms)
+            (apply #'thread-last-help-fn (cdr forms)))))
+
+(defmacro ->> (&rest forms)
+  (let ((forms (reverse forms)))
+    (apply #'thread-last-help-fn forms)))
+;; (macroexpand '(->> list-of-emps
+;;                 (filter #'fn)
+;;                 (map #'mfn)))
+
 
 (provide 'elisp-helper)
