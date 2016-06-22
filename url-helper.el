@@ -1,3 +1,4 @@
+(require 'cl-lib)
 (defun url-get-content-from-url(url)
   "获取 `url'的内容"
   (let ((url-buffer (url-retrieve-synchronously url))
@@ -36,7 +37,7 @@
 					   url))
 		url-things)
 	(with-temp-buffer 
-	  (flet ((tag-node-p (node)
+	  (cl-flet ((tag-node-p (node)
 						 (listp (cdr node)))
 			 (attr-node-p (node)
 						  (atom (cdr node)))

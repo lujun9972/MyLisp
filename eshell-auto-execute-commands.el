@@ -1,4 +1,4 @@
-(require 'cl)
+(require 'cl-lib)
 (require 'eshell)
 (defvar eshell-auto-executable-commands '( )
   "允许自动执行的command")

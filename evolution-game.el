@@ -1,4 +1,4 @@
-(require 'cl)
+(require 'cl-lib)
 (defvar *width* 100
   "世界边界的宽度")
 (defvar *height* 30

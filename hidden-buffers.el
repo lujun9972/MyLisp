@@ -1,4 +1,4 @@
-(require 'cl)
+(require 'cl-lib)
 (defgroup hidden-buffers nil
   "隐藏无用的buffer")
 

@@ -1,4 +1,4 @@
-(require 'cl)
+(require 'cl-lib)
 (require 'subr-x)
 
 (defgroup el-todo nil
