@@ -1,5 +1,5 @@
 ;; 设置为org文件添加attachment的方法
-(require 'org-attach)
+;; (require 'org-attach)
 (defun org-insert-attachment-link (&optional attachment-file-name)
   " Org file中便捷创建指向attachment目录中文件的链接"
   (interactive)
