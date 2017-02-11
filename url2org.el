@@ -12,6 +12,9 @@
                     (with-temp-buffer
                       (run-hooks 'org-mode-hook)
                       (yank)
+                      (goto-char (point-min))
+                      (search-forward "location")
+                      (replace-match "#+URL")
                       (buffer-string)))))
     (with-temp-file filename
       (insert content))))
