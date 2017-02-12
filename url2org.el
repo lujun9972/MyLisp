@@ -5,11 +5,11 @@
   "save http(s) page to org file")
 
 (defcustom url2org-store-dir "/home/lujun9972/github/emacs-document/raw/"
-  "specify the directory to store org files"
+  "The directory to store org files"
   :type 'directory)
 
 (defcustom url2org-auto-kill-p t
-  "wether kill the w3m buffer after saved to org file"
+  "Whether kill the w3m buffer after saved"
   :type 'boolean)
 
 (defun url2org--save-to-org (&rest ignore)
