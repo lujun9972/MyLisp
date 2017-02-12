@@ -2,7 +2,7 @@
 (require 'w3m)
 
 (defgroup url2org nil
-  "save http(s) page to org file")
+  "Save http(s) page as org file")
 
 (defcustom url2org-store-dir "/home/lujun9972/github/emacs-document/raw/"
   "The directory to store org files"
