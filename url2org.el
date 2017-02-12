@@ -19,7 +19,6 @@
          (content (progn
                     (org-w3m-copy-for-org-mode)
                     (with-temp-buffer
-                      (run-hooks 'org-mode-hook)
                       (yank)
                       (goto-char (point-min))
                       (search-forward "location")
