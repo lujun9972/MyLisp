@@ -12,8 +12,16 @@
   "Whether kill the w3m buffer after saved"
   :type 'boolean)
 
+(defcustom url2org-max-process 10
+  "Max number of w3m process"
+  :type 'number)
+
+(defvar url2org-process-num 0
+  "Number of w3m process")
+
 (defun url2org--save-to-org (&rest ignore)
   (message "storing %s" w3m-current-url)
+  (setq url2org-process-num (- url2org-process-num 1))
   (let* ((title (w3m-current-title))
          (filename (concat (file-name-as-directory url2org-store-dir) title ".org"))
          (content (progn
@@ -31,6 +39,9 @@
 
 (defun url2org (url)
   (interactive "surl:")
+  (while (>= url2org-process-num url2org-max-process)
+    (sit-for 1))
+  (setq url2org-process-num (+ url2org-process-num 1))
   (w3m-goto-url-new-session url)
   (set (make-local-variable 'w3m-display-hook) (cons #'url2org--save-to-org w3m-display-hook)))
 
