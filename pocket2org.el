@@ -10,7 +10,7 @@
       (pocket2org (+ offset count) count callback))))
 
 (let ((url2org-store-dir "/tmp")
-      (url2org-max-process 1))
-  (pocket2org 1 1000 (lambda (url)
+      (url2org-max-process 2))
+  (pocket2org 700 1000 (lambda (url)
                        (ignore-errors (url2org url)))))
 ;; http://paulgraham.com/avg.html

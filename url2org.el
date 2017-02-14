@@ -31,8 +31,8 @@
     (with-current-buffer w3m-buf
       (message "storing %s" w3m-current-url)
       (setq url2org-urls (delete w3m-current-title url2org-urls))
-      (setq url2org-process-num (max 0 (- url2org-process-num 1)))
-      (url2org-save))
+      (setq url2org-process-num (- url2org-process-num 1))
+      (ignore-errors (url2org-save)))
     (when url2org-auto-kill-p
       (kill-buffer w3m-buf))))
 
