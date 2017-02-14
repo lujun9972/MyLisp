@@ -30,23 +30,20 @@
     (message "storing %s" w3m-current-url)
     (setq url2org-urls (delete w3m-current-title url2org-urls))
     (setq url2org-process-num (max 0 (- url2org-process-num 1)))
-    (url2org-save)
-    (when url2org-auto-kill-p
-      (kill-buffer))))
+    (url2org-save))
+  (when url2org-auto-kill-p
+    (kill-buffer w3m-buf)))
 
 (defun url2org-save ()
   (interactive)
-  (let* ((title (w3m-current-title))
-         (filename (concat (file-name-as-directory url2org-store-dir) title ".org"))
-         (content (progn
-                    (org-w3m-copy-for-org-mode)
-                    (with-temp-buffer
-                      (yank)
-                      (buffer-string)))))
+  (let* ((url w3m-current-url)
+         (title (w3m-current-title))
+         (filename (concat (file-name-as-directory url2org-store-dir) title ".org")))
+    (org-w3m-copy-for-org-mode)
     (with-temp-file filename
-      (insert "#+URL: " w3m-current-url)
+      (insert "#+URL: " url)
       (newline)
-      (insert content))))
+      (yank))))
 
 (defun url2org (url)
   (interactive "surl:")
