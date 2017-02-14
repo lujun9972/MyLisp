@@ -25,14 +25,16 @@
   "Timeout seconds"
   :type 'number)
 
-(defun url2org--save-to-org (w3m-buf)
-  (with-current-buffer w3m-buf
-    (message "storing %s" w3m-current-url)
-    (setq url2org-urls (delete w3m-current-title url2org-urls))
-    (setq url2org-process-num (max 0 (- url2org-process-num 1)))
-    (url2org-save))
-  (when url2org-auto-kill-p
-    (kill-buffer w3m-buf)))
+(defun url2org--save-to-org (&optional w3m-buf)
+  (interactive)
+  (let ((w3m-buf (or w3m-buf (current-buffer))))
+    (with-current-buffer w3m-buf
+      (message "storing %s" w3m-current-url)
+      (setq url2org-urls (delete w3m-current-title url2org-urls))
+      (setq url2org-process-num (max 0 (- url2org-process-num 1)))
+      (url2org-save))
+    (when url2org-auto-kill-p
+      (kill-buffer w3m-buf))))
 
 (defun url2org-save ()
   (interactive)
