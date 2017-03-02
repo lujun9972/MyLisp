@@ -1,3 +1,5 @@
+;; -*- lexical-binding: t; -*-
+
 (require 'cl-lib)
 (load "subr")
 (defun function-arity (fn)
@@ -370,5 +372,10 @@ trec的第一个参数应当是一个具有三个参数的函数，三个参数�
 ;;                 (filter #'fn)
 ;;                 (map #'mfn)))
 
+(defun expose (function)
+  "Return an interactive version of FUNCTION."
+  (lambda ()
+    (interactive)
+    (funcall function)))
 
 (provide 'elisp-helper)
