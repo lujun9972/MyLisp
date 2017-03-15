@@ -53,7 +53,6 @@
     (t (error "unsupported mode[%s]" major-mode))))
 
 (defun url2org--save-to-org (&optional buf)
-  (interactive)
   (let ((buf (or buf (current-buffer))))
     (with-current-buffer buf
       (message "storing %s" (url2org--get-current-title))
@@ -106,9 +105,7 @@
                                                  (setq url2org-process-num (- url2org-process-num 1))
                                                  (message "killing %s" url)
                                                  (kill-buffer buf))))))
-      (t "raise unsupported mode[%s]" major-mode))
-    
-    ))
+      (t "raise unsupported mode[%s]" major-mode))))
 
 ;; (let ((url2org-store-dir "/home/lujun9972/github/lujun9972.github.com/英文必须死/"))
 ;;   (call-interactively #'url2org))
