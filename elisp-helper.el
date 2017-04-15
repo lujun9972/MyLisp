@@ -378,4 +378,8 @@ trec的第一个参数应当是一个具有三个参数的函数，三个参数�
     (interactive)
     (funcall function)))
 
+(defun graphic-p ()
+  "判断当前环境是否为图像环境"
+  (getenv "DISPLAY"))
+
 (provide 'elisp-helper)
