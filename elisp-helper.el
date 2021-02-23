@@ -20,7 +20,7 @@
 						  (t min-arg))))
 	  (cons min-arg max-arg))))
 ;; Onlisp中的列表工具
-(proclaim '(inline last1 single append1 conc1 mklist))
+(cl-proclaim '(inline last1 single append1 conc1 mklist))
 (defun last1 (lst)
   (car (last lst)))
 (defun single (lst)
@@ -99,7 +99,7 @@
 (defun split-if (fn lst)
   "member的某种泛化。不同之处在于member先搜索想要找的元素，然后返回从找到元素开始的列表的cdr，而split-if把原列表的两个部分都返回了。该实用工具主要用于已经按照某种规则排好序的列表:"
   (let ((acc nil))
-	(do ((src lst (cdr src)))
+	(cl-do ((src lst (cdr src)))
 		((or (null src) (funcall fn (car src)))
 		 (values (nreverse acc) src))
 	  (push (car src) acc))))
@@ -151,13 +151,13 @@
   (mapa-b fn 1 n))
 (cl-defun mapa-b (fn a b &optional (step 1))
   "map `fn' 从`a' 到`b',每次步进`step'"
-  (do ((i a (+ i step))
+  (cl-do ((i a (+ i step))
 	   (result nil))
 	  ((> i b) (nreverse result))
 	(push (funcall fn i) result)))
 (defun map-> (fn start test-fn succ-fn)
   "map `fn' 从`start' 到`test-fn'为真为止,每次步进通过调用`succ-fn'完成"
-  (do ((i start (funcall succ-fn i))
+  (cl-do ((i start (funcall succ-fn i))
 	   (result nil))
 	  ((funcall test-fn i) (nreverse result))
 	(push (funcall fn i) result)))
