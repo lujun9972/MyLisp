@@ -24,7 +24,7 @@
   (apply #'random-plant *jungle*)
   (random-plant 0 0 *width* *height*))
 
-(defstruct animal
+(cl-defstruct animal
   x										;动物所在的坐标
   y
   energy								;动物所拥有的能量,表示动物还能存活的天数

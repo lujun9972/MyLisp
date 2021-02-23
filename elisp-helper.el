@@ -337,7 +337,7 @@ trec的第一个参数应当是一个具有三个参数的函数，三个参数�
 (defconst unforced (gensym)
   "delay对象尚未求值的标志")
 
-(defstruct delay						;定义delay结构体,其由两个部分组成
+(cl-defstruct delay						;定义delay结构体,其由两个部分组成
   forced								;forced代表该delay结构体是否已经求值,若求过值,则直接使用该值
   closure)								;closure为一个闭包,调用它就能得到该delay所代表的值
 

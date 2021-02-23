@@ -14,7 +14,7 @@
   "generate a new task-id"
   (gensym))
 
-(defstruct task
+(cl-defstruct task
   (id (todo--gen-task-id))
   (desc (read-string "请输入任务描述: "))
   (pri todo--default-task-pri)

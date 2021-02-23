@@ -2,7 +2,7 @@
 (require 'process-helper)
 
 
-(defstruct monitor exam-cmd
+(cl-defstruct monitor exam-cmd
 		   reaction-rules)
 
 (defun monitor-process-p (process)
