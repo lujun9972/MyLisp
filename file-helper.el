@@ -18,12 +18,6 @@
 	(insert-file-contents file)
 	(buffer-string)))
 
-(defun file-name-directory-name-of-path (path)
-  "文件所属的目录名称,仅仅只是包含该文件的目录名称"
-  (let ((dir (file-name-directory path))) 
-	(if (string-match ".+[/\\]\\([^/\\]+\\)[/\\]$" dir)
-		(match-string 1 dir)
-	  dir)))
 
 (defun files-in-directory-with-subdir (dir &optional pred full match nosort)
   "类似directory-files,但是会递归搜索子目录,且返回的是符合`pred'判断的文件,`pred'默认为除了.和..之外的所有文件"
